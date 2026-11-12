@@ -13,4 +13,4 @@ All come from Wikimedia Commons, which hosts freely licensed media (Creative Com
 | `year-end-group-photo-at-a-naivasha-resort.jpg` | Waynestock Whitewater Rafting Crew Group Photo.jpg | https://commons.wikimedia.org/wiki/File:Waynestock_Whitewater_Rafting_Crew_Group_Photo.jpg |
 | `facilitator-briefing-a-group-before-an-activ.jpg` | Team Building Activity with SupplyHouse.jpg | https://commons.wikimedia.org/wiki/File:Team_Building_Activity_with_SupplyHouse.jpg |
 | `venue-lawn-or-main-activity-area.jpg` | Mount Kenya Sarfari Club.jpg | https://commons.wikimedia.org/wiki/File:Mount_Kenya_Sarfari_Club.jpg |
-| `a-client-team-mid-activity-outdoors-faces-vis.jpg` | Teambuilding II.JPG | https://commons.wikimedia.org/wiki/File:Teambuilding_II.JPG |
+| `a-client-team-mid-activity-outdoors-faces-vi.jpg` | Teambuilding II.JPG | https://commons.wikimedia.org/wiki/File:Teambuilding_II.JPG |
