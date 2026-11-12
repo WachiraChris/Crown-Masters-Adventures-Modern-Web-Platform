@@ -210,11 +210,12 @@ figure{margin:0}
 .quote-card blockquote{margin:0 0 16px;font:400 1.15rem/1.5 "Fraunces",Georgia,serif}
 .quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
 /* drive-time chart */
-.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
-.dt h2,.dt h3{font-size:1.15rem;margin-bottom:4px}
-.dt svg{display:block;width:100%;height:auto}
-.dt a{text-decoration:none}
-.dt a:hover text.lbl{fill:var(--grass);text-decoration:underline}
+details.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 20px;max-width:920px}
+details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-bottom:16px}
+.dt-list{list-style:none;margin:0;padding:0;max-width:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
+@media (max-width:760px){.dt-list{grid-template-columns:minmax(0,1fr)}}
+.dt-list a{display:flex;justify-content:space-between;align-items:baseline;gap:4px 16px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.dt-list a:hover b{color:var(--grass);text-decoration:underline}.dt-list span{font-size:.88rem;color:var(--ink-2)}
 /* steps */
 .steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;max-width:none}
 @media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
@@ -486,23 +487,12 @@ def cta(here, title="Planning a team event?", text="Send your group size, dates 
             f'<a class="btn btn-line" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener" data-ev="whatsapp_band">WhatsApp us</a></div></div></div></section>')
 
 def drive_chart(here, regions=REGIONS, title="How far each region is from Nairobi"):
-    rows = len(regions)
-    h = 56 + rows * 38 + 34
-    x0, x1, maxh = 250, 700, 8
-    X = lambda v: x0 + (x1 - x0) * v / maxh
-    out = [f'<svg viewBox="0 0 760 {h}" role="img" aria-labelledby="dt-t"><title id="dt-t">{E(title)}, approximate typical travel time</title>']
-    for t in range(0, maxh + 1, 2):
-        out.append(f'<line x1="{X(t)}" x2="{X(t)}" y1="44" y2="{h - 26}" stroke="var(--line)"/><text x="{X(t)}" y="{h - 8}" text-anchor="middle" font-size="14" fill="var(--ink-2)">{t} h</text>')
-    for i, r in enumerate(regions):
-        y = 64 + i * 38
-        out.append(f'<a href="{link("/venues/" + r["slug"] + "/", here)}">'
-                   f'<text class="lbl" x="0" y="{y + 5}" font-size="16" font-weight="600" fill="var(--ink)">{E(r["short"])}</text>'
-                   f'<text x="{x0 - 12}" y="{y + 5}" font-size="14" text-anchor="end" fill="var(--ink-2)">{r["count"]}</text>'
-                   f'<line x1="{x0}" x2="{X(r["hours"])}" y1="{y}" y2="{y}" stroke="var(--gold)" stroke-width="4" stroke-linecap="round"/>'
-                   f'<circle cx="{X(r["hours"])}" cy="{y}" r="7" fill="var(--card)" stroke="var(--grass)" stroke-width="3"/></a>')
-    out.append(f'<text x="{x0 - 12}" y="30" font-size="13" text-anchor="end" fill="var(--ink-2)">Venues</text><text x="{x0}" y="30" font-size="13" fill="var(--ink-2)">Typical door-to-door travel time from Nairobi</text></svg>')
-    return (f'<div class="dt"><h3>{E(title)}</h3><p class="small muted" style="margin:0 0 8px">Approximate. Road times depend on traffic; coast, west and cross-border times assume a flight or the SGR train. Select a region to see its venues.</p>'
-            + "".join(out) + '</div>')
+    # Collapsed travel-time list: one line when closed, readable on phones when open.
+    rows = "".join(
+        f'<li><a href="{link("/venues/" + r["slug"] + "/", here)}"><b>{E(r["short"])}</b>'
+        f'<span>{E(r["travel"][:1].upper() + r["travel"][1:])}</span></a></li>' for r in regions)
+    return (f'<details class="dt"><summary>{E(title)}</summary>'
+            f'<div><ul class="dt-list">{rows}</ul><p class="small muted" style="margin:10px 0 0">Approximate door-to-door times. Select a region to see its venues.</p></div></details>')
 
 def venue_card(v, region):
     tbc = v.endswith("?")
@@ -580,13 +570,6 @@ def home(here):
 <div class="grid4" style="margin-top:24px">{svc}</div>
 </div></section>
 
-<section class="band"><div class="wrap">
-<div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
-<p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
-<a class="btn btn-line" href="{link('/venues/', here)}">Compare all regions</a></div>
-<div style="margin-top:20px">{drive_chart(here)}</div>
-</div></section>
-
 <section><div class="wrap">
 <h2>How booking works</h2>
 <ol class="steps" style="margin-top:24px">
@@ -598,7 +581,9 @@ def home(here):
 </div></section>
 
 <section class="band"><div class="wrap">
-<h2>Popular regions</h2>
+<div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
+<p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
+<a class="btn btn-line" href="{link('/venues/', here)}">Compare all regions</a></div>
 <div class="grid3" style="margin-top:24px">{regcards}</div>
 </div></section>
 

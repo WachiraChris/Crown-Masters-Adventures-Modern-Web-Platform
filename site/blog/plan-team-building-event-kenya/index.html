@@ -120,11 +120,12 @@ figure{margin:0}
 .quote-card blockquote{margin:0 0 16px;font:400 1.15rem/1.5 "Fraunces",Georgia,serif}
 .quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
 /* drive-time chart */
-.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
-.dt h2,.dt h3{font-size:1.15rem;margin-bottom:4px}
-.dt svg{display:block;width:100%;height:auto}
-.dt a{text-decoration:none}
-.dt a:hover text.lbl{fill:var(--grass);text-decoration:underline}
+details.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 20px;max-width:920px}
+details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-bottom:16px}
+.dt-list{list-style:none;margin:0;padding:0;max-width:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
+@media (max-width:760px){.dt-list{grid-template-columns:minmax(0,1fr)}}
+.dt-list a{display:flex;justify-content:space-between;align-items:baseline;gap:4px 16px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.dt-list a:hover b{color:var(--grass);text-decoration:underline}.dt-list span{font-size:.88rem;color:var(--ink-2)}
 /* steps */
 .steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;max-width:none}
 @media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
