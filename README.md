@@ -20,7 +20,10 @@ Rebuild of [crownmastersadventures.co.ke](https://crownmastersadventures.co.ke):
 ```bash
 python3 build.py               # demo build: links end in index.html, opens straight from the folder
 python3 build.py --production  # clean URLs for deployment (what is committed in site/)
+python3 build.py --theme=navy  # preview another palette: emerald (default), navy, savanna
 ```
+
+Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces, body text Source Sans 3.
 
 Edit content in `data.py` (venues, regions, phone, email, hours, geo, founding year), then rebuild. Setting `opening_hours`, `geo` and `founded` switches them on in the LocalBusiness schema automatically.
 
