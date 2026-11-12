@@ -994,7 +994,7 @@ def venues(here):
                           "containedInPlace": {"@type": "Place", "name": r["name"]}}})
             lis.append(venue_card(v, r))
         blocks.append(f"""<section class="region" id="{r['slug']}" data-r="{r['slug']}" data-trip="{r['trip']}" data-set="{E(r['setting'])}" aria-labelledby="h-{r['slug']}">
-<div class="region-head"><h2 id="h-{r['slug']}">Team building venues in {E(r['name'])}</h2><a href="{link('/venues/' + r['slug'] + '/', here)}">Region guide</a></div>
+<div class="region-head"><h2 id="h-{r['slug']}">Venues in {E(r['name'])}</h2><a href="{link('/venues/' + r['slug'] + '/', here)}">Region guide</a></div>
 <div class="tags"><span class="tag">{r['count']} venues</span><span class="tag">{E(TRIP[r['trip']])}</span><span class="tag">{E(r['setting'])}</span><span class="tag">{E(r['travel'])}</span></div>
 <p>{E(r['intro'])}</p>
 <ul class="vgrid">{''.join(lis)}</ul></section>""")
@@ -1005,7 +1005,7 @@ def venues(here):
     body = f"""
 {crumbs([("Home", "/"), ("Venues", here)], here)}
 <section class="page-head" style="padding-bottom:24px"><div class="wrap split">
-<div><h1>Team building venues in Kenya, Tanzania and Uganda</h1>
+<div><h1>Venues in Kenya, Tanzania and Uganda</h1>
 <div class="answer"><p>We book and run team building events at {TOTAL} venues across {len(REGIONS)} regions, from day-trip gardens around Nairobi to lakeside resorts in Naivasha, adventure camps in Sagana, Mount Kenya lodges and beach hotels in Mombasa and Diani. Add venues to your quote and we'll check availability and prices for your dates.</p></div>
 <p class="small muted">Venue list last reviewed <time datetime="{UPDATED}">{UPDATED_TEXT}</time>.</p></div>
 {photo("a group on the lawn of a lakeside resort")}
@@ -1014,14 +1014,13 @@ def venues(here):
 <div class="finder" id="regions"><div class="wrap">
 <div class="frow"><label class="sr" for="q">Search venues or towns</label><input id="q" type="search" placeholder="Search a venue or town, e.g. Naivasha" autocomplete="off">
 <label class="sr" for="trip">Trip type</label><select id="trip"><option value="all">Day trip or overnight</option><option value="day">Day trips</option><option value="overnight">Overnight stays</option></select>
-<label class="sr" for="set">Setting</label><select id="set"><option value="all">Any setting</option>{sopts}</select>
-<label class="sr" for="cap">Group size</label><select id="cap" disabled title="Capacity data is being collected for each venue"><option>Any group size (coming soon)</option></select></div>
+<label class="sr" for="set">Setting</label><select id="set"><option value="all">Any setting</option>{sopts}</select></div>
 <div class="chips" role="group" aria-label="Filter by region">{chips}</div>
 <p class="result-count" id="rc" aria-live="polite"></p>
 </div></div>
 <div class="wrap">{''.join(blocks)}
 <p class="empty" id="empty">No venues match those filters. Clear the search, or <a href="{link('/contact-us/#quote', here)}">tell us what you need</a> and we'll suggest options, including venues not listed here.</p>
-<section class="tight">{confirm(f"Capacity, amenities and photos are not yet recorded for each venue. The group-size filter switches on once they are. A sample <a href='{link('/venues/profile-template/', here)}'>venue profile page</a> shows the layout each venue will get.")}</section>
+<section class="tight">{confirm(f"Capacity, amenities and photos are not yet recorded for each venue. A sample <a href='{link('/venues/profile-template/', here)}'>venue profile page</a> shows the layout each venue will get.")}</section>
 </div>
 {faq_block(faqs, "Choosing a venue")}
 {cta(here, "Not sure which venue fits?", "Send your group size, dates and budget. We come back with three venue options and a quote.")}
@@ -1066,7 +1065,7 @@ def region_page(r):
         body = f"""
 {crumbs([("Home", "/"), ("Venues", "/venues/"), (r["short"], here)], here)}
 <section class="page-head"><div class="wrap split">
-<div><h1>Team building venues in {E(r['name'])}</h1>
+<div><h1>Venues in {E(r['name'])}</h1>
 <div class="answer"><p>{B['name']} books and runs team building events at {r['count']} venues in {E(r['name'])}, {E(r['travel'])} from Nairobi. {E(r['intro'])}</p></div>
 <div class="tags"><span class="tag">{E(TRIP[r['trip']])}</span><span class="tag">{E(r['setting'])}</span><span class="tag">Towns: {E(', '.join(r['towns']))}</span></div>
 <div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_region">Get venue options</a><a class="btn btn-line" href="{link('/venues/', here)}">All regions</a></div></div>
