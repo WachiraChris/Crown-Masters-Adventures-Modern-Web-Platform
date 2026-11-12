@@ -101,8 +101,8 @@ if THEME not in THEMES:
     sys.exit(f"Unknown theme {THEME!r}. Choose from: {', '.join(THEMES)}")
 def _tokens(mode):
     return ";".join(f"--{k}:{v}" for k, v in zip(_T, THEMES[THEME][mode].split()))
-_LIGHT = _tokens("light") + ";--focus:#1D5FD1;--warn-bg:#FFF6DD;--warn-line:#E6C568;--hdr:72px;--r:14px;--shadow:0 1px 2px rgba(16,24,20,.05),0 14px 34px -14px rgba(16,24,20,.16)"
-_DARK = _tokens("dark") + ";--focus:#8AB4FF;--warn-bg:#2E2712;--warn-line:#8A6B1E;--shadow:none"
+_LIGHT = _tokens("light") + ";color-scheme:light;--focus:#1D5FD1;--warn-bg:#FFF6DD;--warn-line:#E6C568;--hdr:72px;--r:14px;--shadow:0 1px 2px rgba(16,24,20,.05),0 14px 34px -14px rgba(16,24,20,.16)"
+_DARK = _tokens("dark") + ";color-scheme:dark;--focus:#8AB4FF;--warn-bg:#2E2712;--warn-line:#8A6B1E;--shadow:none"
 DEEP = THEMES[THEME]["light"].split()[_T.index("deep")]
 ACCENT = THEMES[THEME]["light"].split()[_T.index("gold")]
 
@@ -200,6 +200,35 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .collage .ph .wm{font-size:clamp(.7rem,1.6vw,1.1rem)}
 @media (max-width:900px){.collage{aspect-ratio:16/11}.collage .ph:not(:first-child) figcaption{-webkit-line-clamp:2}}
 @media (max-width:900px) and (min-width:620px) and (orientation:landscape){.hero .collage{aspect-ratio:5/4}}
+/* event showcase: wipe reveal, slow zoom, staggered caption, progress index */
+.show{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);margin-top:28px;align-items:stretch}
+.show-stage{position:relative;aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;background:var(--deep);box-shadow:var(--shadow)}
+.show-slide{position:absolute;inset:0;opacity:0;z-index:0;visibility:hidden}
+.show-slide.out{opacity:1;z-index:1;visibility:visible}
+.show-slide.on{opacity:1;z-index:2;visibility:visible;animation:show-wipe 1s cubic-bezier(.77,0,.18,1)}
+.show-slide img,.show-empty{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.show-empty{background:linear-gradient(135deg,var(--deep-2),var(--deep))}.show-empty svg{position:absolute;inset:auto 0 0 0;width:100%;height:60%;opacity:.35}.show-empty svg path{fill:var(--gold-on-deep)}
+.show-slide.on img,.show-slide.on .show-empty{animation:show-zoom 7.5s cubic-bezier(.2,.6,.2,1) both}
+.show-slide::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(6,10,20,.86) 0%,rgba(6,10,20,.35) 38%,transparent 62%)}
+.show-slide .wm{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font:700 clamp(1.1rem,3.4vw,2.4rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.8);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-14deg);pointer-events:none}
+.show-cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:clamp(16px,3vw,32px);color:#F6F2E8}
+.show-cap h3{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;margin:6px 0 4px;color:#fff}.show-cap p{margin:0 0 8px;max-width:46ch;color:rgba(246,242,232,.88)}
+.show-n{font:700 .74rem "Plus Jakarta Sans",sans-serif;letter-spacing:.18em;color:var(--gold-on-deep)}
+.show-slide.on .show-cap>*{animation:show-rise .7s cubic-bezier(.2,.7,.2,1) both}.show-slide.on .show-cap>:nth-child(1){animation-delay:.35s}.show-slide.on .show-cap>:nth-child(2){animation-delay:.45s}.show-slide.on .show-cap>:nth-child(3){animation-delay:.55s}.show-slide.on .show-cap>:nth-child(4){animation-delay:.65s}
+.show-side{display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.show-tabs{list-style:none;margin:0;padding:0;max-width:none;display:grid}
+.show-tab{position:relative;display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;min-height:48px;color:var(--ink-2);font:600 1rem "Plus Jakarta Sans",sans-serif;cursor:pointer;transition:color .2s,padding-left .3s}
+.show-tab:hover{color:var(--ink)}.show-tab[aria-current]{color:var(--ink);padding-left:10px}
+.show-i{font:500 .95rem "Fraunces",Georgia,serif;color:var(--gold-ink)}
+.show-tab i{position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--gold)}
+.show-tab[aria-current] i{width:100%}.show.run .show-tab[aria-current] i{animation:show-fill 6.5s linear both}
+.show-pause{align-self:flex-start;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-height:40px;color:var(--ink-2);font:700 .85rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;cursor:pointer}
+@keyframes show-wipe{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes show-zoom{from{transform:scale(1.14)}to{transform:scale(1)}}
+@keyframes show-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes show-fill{from{width:0}to{width:100%}}
+@media (max-width:860px){.show{grid-template-columns:minmax(0,1fr)}.show-stage{aspect-ratio:4/3}.show-side{flex-direction:row;align-items:center}.show-tabs{flex:1;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.show-tab{padding:16px 0 12px;justify-content:center;min-height:44px}.show-tab[aria-current]{padding-left:0}.show-tab>span:nth-child(2){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.show-tab i{top:auto;bottom:0;width:100%;background:var(--line)}.show-tab[aria-current] i{background:var(--gold)}}
+@media (max-width:860px) and (min-width:620px) and (orientation:landscape){.show-stage{aspect-ratio:21/9}}
 .ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
 figure{margin:0}
 /* cards */
@@ -295,10 +324,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--grass);outline:none;b
 .full{grid-column:1/-1}
 .radio-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media (max-width:600px){.radio-cards{grid-template-columns:minmax(0,1fr)}}
-.radio-cards label{font-weight:600;border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--card);margin:0;display:flex;gap:10px;align-items:flex-start}
-.radio-cards input{width:auto;margin-top:4px}
+.radio-cards label{border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;background:var(--card);margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;align-items:center;align-content:center;min-height:76px;transition:border-color .15s,background-color .15s}
+.radio-cards label:hover{border-color:var(--gold)}.radio-cards b{font-weight:700;line-height:1.25}
+.radio-cards input{width:18px;height:18px;margin:0;accent-color:var(--grass)}
 .radio-cards label:has(input:checked){border-color:var(--grass);background:var(--grass-2)}
-.radio-cards small{display:block;font-weight:400;color:var(--ink-2)}
+.radio-cards small{grid-column:2;font-size:.86rem;line-height:1.35;font-weight:400;color:var(--ink-2)}
+@media (max-width:1100px) and (min-width:901px){.radio-cards{grid-template-columns:minmax(0,1fr)}.radio-cards label{min-height:0}}
+.chk{display:flex;align-items:center;gap:10px;font-weight:500;margin:10px 0 0}.chk input{width:18px;height:18px;flex:none;accent-color:var(--grass)}
+.sent{text-align:left}.sent .tick{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--grass-2);color:var(--grass);margin-bottom:16px}
 .wizard{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:clamp(20px,3.2vw,36px);box-shadow:var(--shadow)}
 @media (max-width:600px){.wizard{padding:20px 16px}}
 .progress{display:flex;gap:6px;list-style:none;padding:0;margin:0 0 24px;max-width:none}
@@ -336,7 +369,7 @@ footer{border-top:1px solid color-mix(in srgb,var(--gold-on-deep) 38%,transparen
 footer h2{font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-on-deep);margin-bottom:16px}
 footer .fcols>div:first-child h2{font:500 1.35rem "Fraunces",Georgia,serif;letter-spacing:0;text-transform:none;color:var(--on-deep)}
 footer ul{list-style:none;padding:0;margin:0}footer li{margin:8px 0}footer a{color:color-mix(in srgb,var(--on-deep) 82%,transparent);text-decoration:none}footer a:hover{color:var(--gold-on-deep);text-decoration:underline}
-.fcols{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px}
+.fcols{display:grid;grid-template-columns:minmax(0,1.7fr) repeat(4,minmax(0,1fr));gap:32px}.fcols>div{min-width:0}footer address a{overflow-wrap:anywhere}footer .f-mail{font-size:.86rem}
 @media (max-width:960px){.fcols{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:480px){.fcols{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:960px) and (min-width:620px) and (orientation:landscape){.fcols{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .legal{margin-top:40px;padding-top:20px;border-top:1px solid color-mix(in srgb,var(--on-deep) 16%,transparent);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:.88rem}
@@ -384,6 +417,16 @@ PHOTO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos")
 PHOTO_SLOTS = {}
 def photo_slug(caption):
     return re.sub(r"[^a-z0-9]+", "-", caption.lower()).strip("-")[:44].strip("-")
+
+def photo_src(caption):
+    """(src, is_stand_in) for a slot, or (None, False) when no image has been supplied yet."""
+    slug = photo_slug(caption)
+    PHOTO_SLOTS[slug] = caption
+    for sub, stand_in in (("", False), ("placeholder", True)):
+        for ext in ("jpg", "jpeg", "webp", "png"):
+            if os.path.exists(os.path.join(PHOTO_DIR, sub, f"{slug}.{ext}")):
+                return "__ASSETS__photos/" + (sub + "/" if sub else "") + f"{slug}.{ext}", stand_in
+    return None, False
 
 def photo(caption, cls=""):
     slug = photo_slug(caption)
@@ -443,7 +486,7 @@ def footer(here):
     return f"""<footer><div class="wrap">
 <div class="fcols">
 <div><h2>{B['name']}</h2><p>Corporate team building, venue booking, corporate fitness and group transport across Kenya, Tanzania and Uganda.</p>
-<address style="font-style:normal;line-height:1.9">{E(B['street'])}, {B['city']}<br><a href="tel:{B['phone']}" data-ev="tel_footer">{B['phone_display']}</a><br><a href="mailto:{B['email']}" data-ev="email_footer">{B['email']}</a><br>{E(B['hours_display'])}</address></div>
+<address style="font-style:normal;line-height:1.9">{E(B['street'])}, {B['city']}<br><a href="tel:{B['phone']}" data-ev="tel_footer">{B['phone_display']}</a><br><a class="f-mail" href="mailto:{B['email']}" data-ev="email_footer">{B['email'].replace('@', '@<wbr>')}</a><br>{E(B['hours_display'])}</address></div>
 <div><h2>Services</h2><ul>{svc}</ul></div>
 <div><h2>Venue regions</h2><ul>{reg}</ul></div>
 <div><h2>Resources</h2><ul>{res}</ul></div>
@@ -582,6 +625,47 @@ FAQ_HOME = [
 G = B["google"]
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
+SHOWCASE = [  # (label, one factual line, photo slot caption)
+    ("Outdoor challenges", "Facilitated team games on venue lawns and fields.", "two teams competing in an outdoor challenge, wide shot showing the venue"),
+    ("Adventure days", "White-water rafting and river activities at Sagana.", "rafting team at Sagana"),
+    ("Lakeside retreats", "Overnight programmes at Rift Valley lake resorts.", "a group on the lawn of a lakeside resort"),
+    ("Indoor workshops", "Problem-solving and communication sessions in a hall or boardroom.", "indoor problem-solving challenge"),
+    ("Corporate fitness", "Group workouts led by our trainers at your office.", "staff in an office car park doing a group workout"),
+    ("Year-end events", "End-of-year team days and group celebrations.", "year-end group photo at a Naivasha resort"),
+]
+SHOW_JS = r"""
+(function(){var d=document,el=d.querySelector('.show');if(!el)return;
+var S=[].slice.call(el.querySelectorAll('.show-slide')),T=[].slice.call(el.querySelectorAll('.show-tab')),btn=el.querySelector('.show-pause'),
+i=0,t,user=false,hover=false,seen=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+function tick(){clearTimeout(t);el.classList.remove('run');if(user||hover||reduce||!seen)return;void el.offsetWidth;el.classList.add('run');t=setTimeout(function(){go(i+1)},6500)}
+function go(n){var p=i;n=(n+S.length)%S.length;if(n===p){tick();return}
+S[p].classList.remove('on');S[p].classList.add('out');setTimeout(function(){S[p].classList.remove('out')},1100);T[p].removeAttribute('aria-current');
+i=n;S[i].classList.add('on');T[i].setAttribute('aria-current','true');tick()}
+T.forEach(function(b,n){b.addEventListener('click',function(){go(n)})});
+el.addEventListener('mouseenter',function(){hover=true;tick()});el.addEventListener('mouseleave',function(){hover=false;tick()});
+el.addEventListener('focusin',function(){hover=true;tick()});el.addEventListener('focusout',function(){hover=false;tick()});
+btn.addEventListener('click',function(){user=!user;btn.setAttribute('aria-pressed',user);btn.textContent=user?'Play':'Pause';tick()});
+var x0=null;el.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+el.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>40)go(i+(dx<0?1:-1))},{passive:true});
+if(reduce){btn.hidden=true}
+if('IntersectionObserver' in window){new IntersectionObserver(function(en){seen=en[0].isIntersecting;tick()},{threshold:.35}).observe(el)}else{seen=true;tick()}
+})();
+"""
+
+def showcase():
+    slides, tabs = [], []
+    for n, (label, line, cap) in enumerate(SHOWCASE):
+        src, stand_in = photo_src(cap)
+        img = (f'<img src="{src}" alt="{"Placeholder image. To be replaced with: " + E(cap) if stand_in else E(cap[:1].upper() + cap[1:])}"{"" if n == 0 else " loading=\"lazy\""} decoding="async">'
+               if src else f'<div class="show-empty" role="img" aria-label="Photo placeholder: {E(cap)}">{MTN}</div>')
+        note = '<span class="wm" aria-hidden="true">Placeholder</span>' if stand_in else ""
+        tag = "" if (src and not stand_in) else f'<span class="tbc">{"Placeholder photo" if src else "Photo to supply"}: client, venue and date to add</span>'
+        slides.append(f'<div class="show-slide{" on" if n == 0 else ""}" id="show-{n}">{img}{note}'
+                      f'<div class="show-cap"><span class="show-n">{n + 1:02d} / {len(SHOWCASE):02d}</span><h3>{E(label)}</h3><p>{E(line)}</p>{tag}</div></div>')
+        tabs.append(f'<li><button type="button" class="show-tab"{" aria-current=\"true\"" if n == 0 else ""} aria-controls="show-{n}"><span class="show-i">{n + 1:02d}</span><span>{E(label)}</span><i aria-hidden="true"></i></button></li>')
+    return (f'<div class="show" aria-roledescription="carousel" aria-label="Kinds of events we run"><div class="show-stage">{"".join(slides)}</div>'
+            f'<div class="show-side"><ol class="show-tabs">{"".join(tabs)}</ol><button type="button" class="show-pause" aria-pressed="false">Pause</button></div></div>')
+
 def home(here):
     services = [
         ("team", "/team-building/", "Team building events", "Facilitated indoor, outdoor and adventure programmes built around what you want the team to come away with."),
@@ -627,7 +711,14 @@ def home(here):
 <div class="answer"><p><strong>In short:</strong> {B['name']} is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p></div>
 </div></section>
 
-<section style="padding-top:32px"><div class="wrap">
+<section class="band"><div class="wrap">
+<p class="eyebrow">Our events</p>
+<h2>A look at the days we plan and run</h2>
+{showcase()}
+{confirm("Supply 6 to 10 photos from real events with the client name, venue and date for each. They replace these slots and the captions, and more slides can be added.")}
+</div></section>
+
+<section><div class="wrap">
 <h2>What we do</h2>
 <p class="muted">Four services that work together, so one call covers the whole event.</p>
 <div class="grid4" style="margin-top:24px">{svc}</div>
@@ -674,7 +765,7 @@ def home(here):
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
                   f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
-                  body, schema)
+                  body, schema, scripts=f"<script>{SHOW_JS}</script>")
 add("/", home)
 
 # ---------------- team building pillar
@@ -1309,11 +1400,11 @@ def contact(here):
 <div class="fgrid2">
 <div class="full"><label for="q-svc">What do you need?</label><select id="q-svc" name="Service"><option>Team building event</option><option>Venue booking only</option><option>Corporate fitness</option><option>Transport hire</option><option>Getaway or expedition</option></select></div>
 <div><label for="q-n">Group size</label><input id="q-n" name="Group size" type="number" min="1" required inputmode="numeric"></div>
-<div><label for="q-d">Preferred dates</label><input id="q-d" name="Dates" required placeholder="e.g. 5 or 12 December"></div>
+<div><label for="q-d">Preferred date</label><input id="q-d" name="Preferred date" type="date" required><label class="chk" for="q-flex"><input id="q-flex" type="checkbox" name="Dates flexible" value="Yes">My dates are flexible</label></div>
 <div class="full"><span style="display:block;font-weight:700;margin-bottom:6px">Duration</span><div class="radio-cards" role="radiogroup">
-<label><input type="radio" name="Duration" value="Half day">Half day<small>At your office or nearby</small></label>
-<label><input type="radio" name="Duration" value="Day trip" checked>Day trip<small>Back the same evening</small></label>
-<label><input type="radio" name="Duration" value="Overnight">Overnight<small>One night or more</small></label></div></div>
+<label><input type="radio" name="Duration" value="Half day"><b>Half day</b><small>At your office or nearby</small></label>
+<label><input type="radio" name="Duration" value="Day trip" checked><b>Day trip</b><small>Back the same evening</small></label>
+<label><input type="radio" name="Duration" value="Overnight"><b>Overnight</b><small>One night or more</small></label></div></div>
 </div></fieldset>
 
 <fieldset class="wstep" data-step="2" hidden style="border:0;padding:0;margin:0"><legend class="sr">Where</legend>
@@ -1339,6 +1430,13 @@ def contact(here):
 <span id="send" hidden style="gap:10px;flex-wrap:wrap"><button type="button" class="btn btn-gold" id="send-email" data-ev="quote_email">Send by email</button><button type="button" class="btn btn-line" id="send-wa" data-ev="quote_whatsapp">Send on WhatsApp</button></span></div>
 <p class="hint">Demo: sending opens your email app or WhatsApp with the request filled in. In production the form posts to the site's form handler and shows the thank-you page.</p>
 </form>
+<div class="wizard sent" id="sent" hidden tabindex="-1" role="status">
+<div class="tick"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+<h2 style="font-size:1.6rem">Request sent</h2>
+<p>Thank you. We will come back to you with venue options and a quote.</p>
+<p class="hint">If your email app or WhatsApp opened with the request filled in, press send there to finish. This form has been cleared.</p>
+<div class="actions"><button type="button" class="btn btn-line" id="again">Start a new request</button></div>
+</div>
 
 <aside>
 <h2>Contact details</h2>
@@ -1357,16 +1455,24 @@ def contact(here):
 (function(){{var f=document.getElementById('quote'),steps=[].slice.call(f.querySelectorAll('.wstep')),prog=[].slice.call(f.querySelectorAll('.progress li')),cur=0,
 next=document.getElementById('next'),back=document.getElementById('back'),send=document.getElementById('send'),err=document.getElementById('q-err');
 function picked(){{var v=window.CMA.get(),box=document.getElementById('picked');box.innerHTML='';v.forEach(function(n){{var s=document.createElement('span');s.textContent=n;box.appendChild(s)}});document.getElementById('picked-hint').style.display=v.length?'none':'block';}}
-function summary(){{var l=[];[].forEach.call(f.elements,function(x){{if(!x.name||!x.value)return;if(x.type==='radio'&&!x.checked)return;l.push(x.name+': '+x.value)}});var v=window.CMA.get();if(v.length)l.push('Shortlisted venues: '+v.join(', '));return l.join('\\n');}}
+var dt=document.getElementById('q-d');
+function today(){{var n=new Date();return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2)}}
+function setMin(){{dt.min=today()}}setMin();dt.addEventListener('focus',setMin);
+function nice(v){{var p=v.split('-');if(p.length!==3)return v;return new Date(+p[0],p[1]-1,+p[2]).toLocaleDateString('en-KE',{{weekday:'long',day:'numeric',month:'long',year:'numeric'}})}}
+function summary(){{var l=[];[].forEach.call(f.elements,function(x){{if(!x.name||!x.value)return;if((x.type==='radio'||x.type==='checkbox')&&!x.checked)return;l.push(x.name+': '+(x.type==='date'?nice(x.value):x.value))}});var v=window.CMA.get();if(v.length)l.push('Shortlisted venues: '+v.join(', '));return l.join('\\n');}}
 function show(i){{cur=i;steps.forEach(function(s,j){{s.hidden=j!==i}});prog.forEach(function(p,j){{p.className=j<i?'done':(j===i?'on':'')}});
 back.hidden=i===0;var last=i===steps.length-1;next.hidden=last;send.hidden=!last;send.style.display=last?'flex':'';err.textContent='';
 if(last)document.getElementById('review').textContent=summary();if(i===2)picked();var h=steps[i].querySelector('h2');if(h){{h.tabIndex=-1;h.focus()}}
 window.dataLayer.push({{event:'quote_step',step:i+1}});}}
 function valid(){{var bad=[].filter.call(steps[cur].querySelectorAll('[required]'),function(x){{return !x.checkValidity()}});
+setMin();if(steps[cur].contains(dt)&&dt.value&&dt.value<dt.min){{err.textContent='That date has already passed. Please choose today or a later date.';dt.focus();return false}}
 if(bad.length){{err.textContent='Please check: '+bad.map(function(x){{return x.name.toLowerCase()}}).join(', ')+'.';bad[0].focus();return false}}return true}}
 next.addEventListener('click',function(){{if(valid())show(cur+1)}});back.addEventListener('click',function(){{show(cur-1)}});
-document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());}});
-document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener');}});
+var sent=document.getElementById('sent');
+function done(){{window.setTimeout(function(){{f.reset();window.CMA.set([]);show(0);f.hidden=true;sent.hidden=false;sent.focus();window.dataLayer.push({{event:'quote_sent'}})}},400)}}
+document.getElementById('again').addEventListener('click',function(){{sent.hidden=true;f.hidden=false;show(0)}});
+document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());done();}});
+document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener');done();}});
 document.addEventListener('shortlist',picked);show(0);
 var h1=document.querySelector('h1');if(h1)h1.focus&&false;}})();
 </script>

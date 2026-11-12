@@ -82,7 +82,7 @@ The client blueprint is the stronger plan; demo v1 was the stronger build.
 
 | Page or template | Target search | Key components | Schema |
 | --- | --- | --- | --- |
-| Home | team building company Kenya | Hero photo collage (one large, two small, no motion), logo bar, stats, 4 services, booking steps, regions with travel times, testimonials, guides, FAQ | LocalBusiness, WebSite, WebPage, FAQPage |
+| Home | team building company Kenya | Hero photo collage (one large, two small, no motion), logo bar, stats, animated event showcase, 4 services, booking steps, regions with travel times, testimonials, guides, FAQ | LocalBusiness, WebSite, WebPage, FAQPage |
 | Team building | corporate team building Kenya | Direct answer, 4 formats, group-size tabs, sample agenda, inclusions, gallery, FAQ | Service, Breadcrumb, FAQPage |
 | Sub-services (4) | indoor / outdoor / virtual team building; group transport | Answer, when to choose, activities, needs, FAQ, region links | Service, Breadcrumb, FAQPage |
 | Venues | team building venues Kenya | Collapsed travel-time list, sticky finder, 123 cards with add-to-quote, live count | CollectionPage, ItemList, Breadcrumb, FAQPage |
