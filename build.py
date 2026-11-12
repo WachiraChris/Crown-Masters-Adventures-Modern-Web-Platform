@@ -6,7 +6,7 @@
 Output goes to ./site
 """
 import base64, hashlib, html, json, os, re, sys, shutil
-from data import DOMAIN, UPDATED, UPDATED_TEXT, BUSINESS as B, REGIONS, CORRECTIONS
+from data import DOMAIN, UPDATED, UPDATED_TEXT, BUSINESS as B, REGIONS, CORRECTIONS, CLIENTS
 
 PROD = "--production" in sys.argv
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "site")
@@ -233,6 +233,20 @@ figure{margin:0}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
+/* client strip: one row, slow loop, uniform cells */
+.cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
+.cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
+.clients{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.cl-track{display:flex;width:max-content;animation:cl-scroll 90s linear infinite}
+.clients:hover .cl-track,.clients.paused .cl-track{animation-play-state:paused}
+.cl-track ul{display:flex;gap:12px;list-style:none;margin:0;padding:0 12px 0 0;max-width:none}
+.cl-track li{flex:none;display:grid;place-items:center;height:68px;min-width:132px;padding:0 24px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#1B2436;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;white-space:nowrap}
+.cl-track img{display:block;height:34px;width:auto;max-width:150px;object-fit:contain;filter:grayscale(1);opacity:.78;transition:filter .25s,opacity .25s}
+.cl-track li:hover img{filter:none;opacity:1}
+.cl-text{margin:14px 0 0;max-width:none}
+@keyframes cl-scroll{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.cl-track{animation:none}.clients{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.cl-track ul[aria-hidden]{display:none}}
+@media (pointer:coarse){.cl-pause{min-height:44px}}
 .logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 @media (max-width:800px){.logos{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .logo-slot{height:64px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;font-size:.8rem;color:var(--ink-2);background:var(--card)}
@@ -626,6 +640,26 @@ FAQ_HOME = [
 G = B["google"]
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
+CL_JS = r"""
+(function(){var d=document,s=d.querySelector('.clients'),b=d.querySelector('.cl-pause');if(!s||!b)return;
+if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){b.hidden=true;return}
+b.addEventListener('click',function(){var p=s.classList.toggle('paused');b.setAttribute('aria-pressed',p);b.textContent=p?'Play':'Pause'});})();
+"""
+
+def client_strip():
+    """One-row client strip: logo where a file exists in photos/logos/, otherwise the name as text."""
+    def item(name, slug):
+        for ext in ("svg", "png", "webp"):
+            if os.path.exists(os.path.join(PHOTO_DIR, "logos", f"{slug}.{ext}")):
+                return f'<li><img src="__ASSETS__photos/logos/{slug}.{ext}" alt="{E(name)}" height="34" loading="lazy" decoding="async"></li>'
+        return f'<li><span>{E(name)}</span></li>'
+    items = "".join(item(n, sl) for n, sl in CLIENTS)
+    lead = ", ".join(E(n) for n, _ in CLIENTS[:10])
+    return (f'<div class="cl-head"><p class="eyebrow">Proud to have served</p><button type="button" class="cl-pause" aria-pressed="false">Pause</button></div>'
+            f'<div class="clients"><div class="cl-track"><ul>{items}</ul><ul aria-hidden="true">{items}</ul></div></div>'
+            f'<p class="small muted cl-text">Teams we have served include {lead} and {len(CLIENTS) - 10} more organisations.</p>'
+            + confirm("Client names were read from the 'Proud to have served' graphic. Confirm the list and permission to show each brand, and supply original logo files; names without a logo file are shown as text."))
+
 HERO_SLOTS = [  # background slideshow behind the home headline, in order
     "two teams competing in an outdoor challenge, wide shot showing the venue",
     "rafting team at Sagana",
@@ -683,7 +717,6 @@ def home(here):
     svc = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in services)
     feat = REGIONS[:6]
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
-    logos = "".join(f'<div class="logo-slot">Client logo {i}</div>' for i in range(1, 7))
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
     if B["reviews"]:
         reviews = '<div class="grid3" style="margin-top:20px">' + "".join(
@@ -695,8 +728,7 @@ def home(here):
 {hero(here)}
 
 <section class="tight"><div class="wrap">
-<p class="eyebrow">Trusted by teams at</p>
-<div class="logos">{logos}</div>
+{client_strip()}
 <div class="stats">
 <div class="stat"><b>{TOTAL}</b>venues in {len(REGIONS)} regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
@@ -756,7 +788,7 @@ def home(here):
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
                   f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
-                  body, schema, scripts=f"<script>{HERO_JS}</script>")
+                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{CL_JS}</script>")
 add("/", home)
 
 # ---------------- team building pillar
@@ -1618,7 +1650,7 @@ for name, txt in extras().items():
 if os.path.isdir(PHOTO_DIR):
     for root, _, names in os.walk(PHOTO_DIR):
         for n in names:
-            if n.lower().endswith((".jpg", ".jpeg", ".webp", ".png")):
+            if n.lower().endswith((".jpg", ".jpeg", ".webp", ".png", ".svg")):
                 dst = os.path.join(OUT, "assets", "photos", os.path.relpath(root, PHOTO_DIR))
                 os.makedirs(dst, exist_ok=True)
                 shutil.copy2(os.path.join(root, n), dst)

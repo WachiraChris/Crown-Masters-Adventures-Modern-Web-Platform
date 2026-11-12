@@ -150,3 +150,21 @@ CLIENT_TO_CONFIRM = {
     "ergonomics": "Ergonomics talks and wellness days are proposed in the blueprint.",
     "large": "Events for 1,000+ people are proposed in the blueprint.",
 }
+
+# Clients, read from the client's "Proud to have served" graphic. To confirm with the client: the names,
+# permission to display each brand, and original logo files. A logo file named after the slug in
+# photos/logos/ (svg or png) is shown instead of the name. Best-known names first.
+CLIENTS = [
+    ("Safaricom", "safaricom"), ("KCB", "kcb"), ("Stanbic Bank", "stanbic-bank"), ("Britam", "britam"),
+    ("Jubilee Insurance", "jubilee-insurance"), ("I&M Bank", "i-m-bank"), ("Unilever", "unilever"), ("Jumia", "jumia"),
+    ("The Aga Khan University Hospital", "aga-khan-university-hospital"), ("USAID", "usaid"),
+    ("Communications Authority of Kenya", "communications-authority-of-kenya"), ("Hapag-Lloyd", "hapag-lloyd"),
+    ("Knight Frank", "knight-frank"), ("Médecins Sans Frontières", "medecins-sans-frontieres"), ("RTI International", "rti-international"),
+    ("AAR", "aar"), ("Resolution Insurance", "resolution-insurance"), ("&Beyond", "andbeyond"), ("Amiran", "amiran"),
+    ("Roto Tanks", "roto-tanks"), ("Kenya Methodist University", "kemu"), ("Kijabe Hospital", "kijabe-hospital"),
+    ("Nairobi Adventist Hospital", "nairobi-adventist-hospital"), ("The Hub Karen", "the-hub-karen"), ("Melvins Tea", "melvins-tea"),
+    ("Platinum Credit", "platinum-credit"), ("Open Capital", "open-capital"), ("Freight In Time", "freight-in-time"),
+    ("AHF Kenya", "ahf-kenya"), ("Premier Realty", "premier-realty"), ("Palla Credit", "palla-credit"),
+    ("Imara Asset Management", "imara-asset-management"), ("Joworld", "joworld"), ("Galaxy Pharma", "galaxy-pharma"),
+    ("Broll", "broll"), ("Mogo", "mogo"), ("Masada Hotel", "masada-hotel"), ("Dunhill Consulting", "dunhill-consulting"),
+]

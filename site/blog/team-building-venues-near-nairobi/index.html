@@ -145,6 +145,20 @@ figure{margin:0}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
+/* client strip: one row, slow loop, uniform cells */
+.cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
+.cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
+.clients{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.cl-track{display:flex;width:max-content;animation:cl-scroll 90s linear infinite}
+.clients:hover .cl-track,.clients.paused .cl-track{animation-play-state:paused}
+.cl-track ul{display:flex;gap:12px;list-style:none;margin:0;padding:0 12px 0 0;max-width:none}
+.cl-track li{flex:none;display:grid;place-items:center;height:68px;min-width:132px;padding:0 24px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#1B2436;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;white-space:nowrap}
+.cl-track img{display:block;height:34px;width:auto;max-width:150px;object-fit:contain;filter:grayscale(1);opacity:.78;transition:filter .25s,opacity .25s}
+.cl-track li:hover img{filter:none;opacity:1}
+.cl-text{margin:14px 0 0;max-width:none}
+@keyframes cl-scroll{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.cl-track{animation:none}.clients{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.cl-track ul[aria-hidden]{display:none}}
+@media (pointer:coarse){.cl-pause{min-height:44px}}
 .logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 @media (max-width:800px){.logos{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .logo-slot{height:64px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;font-size:.8rem;color:var(--ink-2);background:var(--card)}

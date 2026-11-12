@@ -2,7 +2,7 @@
 <html lang="en-KE">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8GSUmskC37bMsNB7asJSqfeQN2S8quiU7dF+TTlE2qw=' 'sha256-8Z5HGPd8ZlSUAqqe7duGkh904lzmujprlzFi6AqA2y8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8GSUmskC37bMsNB7asJSqfeQN2S8quiU7dF+TTlE2qw=' 'sha256-8Z5HGPd8ZlSUAqqe7duGkh904lzmujprlzFi6AqA2y8=' 'sha256-tfqLlEVs6s73nd1Xi6Ck21zjNDRw+U5mW7lrAI6FBTI='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Corporate Team Building in Kenya | Crown Masters Adventures</title>
@@ -145,6 +145,20 @@ figure{margin:0}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
+/* client strip: one row, slow loop, uniform cells */
+.cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
+.cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
+.clients{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.cl-track{display:flex;width:max-content;animation:cl-scroll 90s linear infinite}
+.clients:hover .cl-track,.clients.paused .cl-track{animation-play-state:paused}
+.cl-track ul{display:flex;gap:12px;list-style:none;margin:0;padding:0 12px 0 0;max-width:none}
+.cl-track li{flex:none;display:grid;place-items:center;height:68px;min-width:132px;padding:0 24px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#1B2436;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;white-space:nowrap}
+.cl-track img{display:block;height:34px;width:auto;max-width:150px;object-fit:contain;filter:grayscale(1);opacity:.78;transition:filter .25s,opacity .25s}
+.cl-track li:hover img{filter:none;opacity:1}
+.cl-text{margin:14px 0 0;max-width:none}
+@keyframes cl-scroll{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.cl-track{animation:none}.clients{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.cl-track ul[aria-hidden]{display:none}}
+@media (pointer:coarse){.cl-pause{min-height:44px}}
 .logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 @media (max-width:800px){.logos{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .logo-slot{height:64px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;font-size:.8rem;color:var(--ink-2);background:var(--card)}
@@ -339,8 +353,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 </div></section>
 
 <section class="tight"><div class="wrap">
-<p class="eyebrow">Trusted by teams at</p>
-<div class="logos"><div class="logo-slot">Client logo 1</div><div class="logo-slot">Client logo 2</div><div class="logo-slot">Client logo 3</div><div class="logo-slot">Client logo 4</div><div class="logo-slot">Client logo 5</div><div class="logo-slot">Client logo 6</div></div>
+<div class="cl-head"><p class="eyebrow">Proud to have served</p><button type="button" class="cl-pause" aria-pressed="false">Pause</button></div><div class="clients"><div class="cl-track"><ul><li><span>Safaricom</span></li><li><span>KCB</span></li><li><span>Stanbic Bank</span></li><li><span>Britam</span></li><li><span>Jubilee Insurance</span></li><li><span>I&amp;M Bank</span></li><li><img src="/assets/photos/logos/unilever.svg" alt="Unilever" height="34" loading="lazy" decoding="async"></li><li><span>Jumia</span></li><li><span>The Aga Khan University Hospital</span></li><li><span>USAID</span></li><li><span>Communications Authority of Kenya</span></li><li><span>Hapag-Lloyd</span></li><li><span>Knight Frank</span></li><li><span>Médecins Sans Frontières</span></li><li><span>RTI International</span></li><li><span>AAR</span></li><li><span>Resolution Insurance</span></li><li><span>&amp;Beyond</span></li><li><span>Amiran</span></li><li><span>Roto Tanks</span></li><li><span>Kenya Methodist University</span></li><li><span>Kijabe Hospital</span></li><li><span>Nairobi Adventist Hospital</span></li><li><span>The Hub Karen</span></li><li><span>Melvins Tea</span></li><li><span>Platinum Credit</span></li><li><span>Open Capital</span></li><li><span>Freight In Time</span></li><li><span>AHF Kenya</span></li><li><span>Premier Realty</span></li><li><span>Palla Credit</span></li><li><span>Imara Asset Management</span></li><li><span>Joworld</span></li><li><span>Galaxy Pharma</span></li><li><span>Broll</span></li><li><span>Mogo</span></li><li><span>Masada Hotel</span></li><li><span>Dunhill Consulting</span></li></ul><ul aria-hidden="true"><li><span>Safaricom</span></li><li><span>KCB</span></li><li><span>Stanbic Bank</span></li><li><span>Britam</span></li><li><span>Jubilee Insurance</span></li><li><span>I&amp;M Bank</span></li><li><img src="/assets/photos/logos/unilever.svg" alt="Unilever" height="34" loading="lazy" decoding="async"></li><li><span>Jumia</span></li><li><span>The Aga Khan University Hospital</span></li><li><span>USAID</span></li><li><span>Communications Authority of Kenya</span></li><li><span>Hapag-Lloyd</span></li><li><span>Knight Frank</span></li><li><span>Médecins Sans Frontières</span></li><li><span>RTI International</span></li><li><span>AAR</span></li><li><span>Resolution Insurance</span></li><li><span>&amp;Beyond</span></li><li><span>Amiran</span></li><li><span>Roto Tanks</span></li><li><span>Kenya Methodist University</span></li><li><span>Kijabe Hospital</span></li><li><span>Nairobi Adventist Hospital</span></li><li><span>The Hub Karen</span></li><li><span>Melvins Tea</span></li><li><span>Platinum Credit</span></li><li><span>Open Capital</span></li><li><span>Freight In Time</span></li><li><span>AHF Kenya</span></li><li><span>Premier Realty</span></li><li><span>Palla Credit</span></li><li><span>Imara Asset Management</span></li><li><span>Joworld</span></li><li><span>Galaxy Pharma</span></li><li><span>Broll</span></li><li><span>Mogo</span></li><li><span>Masada Hotel</span></li><li><span>Dunhill Consulting</span></li></ul></div></div><p class="small muted cl-text">Teams we have served include Safaricom, KCB, Stanbic Bank, Britam, Jubilee Insurance, I&amp;M Bank, Unilever, Jumia, The Aga Khan University Hospital, USAID and 28 more organisations.</p><p class="confirm"><span><b>To confirm with client:</b> Client names were read from the 'Proud to have served' graphic. Confirm the list and permission to show each brand, and supply original logo files; names without a logo file are shown as text.</span></p>
 <div class="stats">
 <div class="stat"><b>123</b>venues in 10 regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
@@ -425,6 +438,10 @@ if(reduce||S.length<2){var c=root.querySelector('.hero-ctl');if(c)c.hidden=true;
 function start(){load(S[1]);tick()}
 if(d.readyState==='complete')start();else window.addEventListener('load',start);
 })();
+</script><script>
+(function(){var d=document,s=d.querySelector('.clients'),b=d.querySelector('.cl-pause');if(!s||!b)return;
+if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){b.hidden=true;return}
+b.addEventListener('click',function(){var p=s.classList.toggle('paused');b.setAttribute('aria-pressed',p);b.textContent=p?'Play':'Pause'});})();
 </script>
 </body>
 </html>
