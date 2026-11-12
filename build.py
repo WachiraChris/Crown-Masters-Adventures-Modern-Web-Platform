@@ -379,8 +379,8 @@ footer h2{font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;te
 footer .fcols>div:first-child h2{font:500 1.35rem "Fraunces",Georgia,serif;letter-spacing:0;text-transform:none;color:var(--on-deep)}
 footer ul{list-style:none;padding:0;margin:0}footer li{margin:8px 0}footer a{color:color-mix(in srgb,var(--on-deep) 82%,transparent);text-decoration:none}footer a:hover{color:var(--gold-on-deep);text-decoration:underline}
 .fcols{display:grid;grid-template-columns:minmax(0,2.15fr) repeat(3,minmax(0,1.05fr)) minmax(0,.8fr);gap:28px}.fcols>div{min-width:0}footer address a{overflow-wrap:anywhere}
-footer .social{display:flex;flex-wrap:wrap;gap:10px;max-width:160px}footer .social li{margin:0}
-footer .social a{display:grid;place-items:center;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold-on-deep) 45%,transparent);color:var(--on-deep);transition:background-color .18s,color .18s,border-color .18s,transform .18s}
+footer .social{display:flex;flex-wrap:wrap;gap:8px;max-width:160px}footer .social li{margin:0}
+footer .social a{display:grid;place-items:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold-on-deep) 45%,transparent);color:var(--on-deep);transition:background-color .18s,color .18s,border-color .18s,transform .18s}
 footer .social a:hover{background:var(--gold);border-color:var(--gold);color:var(--on-gold);transform:translateY(-2px);text-decoration:none}
 @media (max-width:960px){.fcols{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:480px){.fcols{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:960px) and (min-width:620px) and (orientation:landscape){.fcols{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -728,8 +728,7 @@ def home(here):
 {hero(here)}
 
 <section class="tight"><div class="wrap">
-{client_strip()}
-<div class="stats">
+<div class="stats" style="margin-top:0">
 <div class="stat"><b>{TOTAL}</b>venues in {len(REGIONS)} regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
 <div class="stat"><b><span class="tbc">to supply</span></b>events delivered</div>
@@ -784,6 +783,9 @@ def home(here):
 
 {faq_block(FAQ_HOME)}
 {cta(here)}
+<section class="tight clients-sec"><div class="wrap">
+{client_strip()}
+</div></section>
 """
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
