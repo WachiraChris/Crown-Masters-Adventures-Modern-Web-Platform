@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .DS_Store
 shots/
+# never commit secrets
+.env
+.env.*
+*.pem
+*.key

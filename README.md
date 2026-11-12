@@ -23,7 +23,7 @@ python3 build.py --production  # clean URLs for deployment (what is committed in
 python3 build.py --theme=emerald  # preview another palette: navy (default), emerald, savanna
 ```
 
-Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces (soft cut), body text Plus Jakarta Sans.
+Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces (soft cut), body text Plus Jakarta Sans, both served from `fonts/`.
 
 Edit content in `data.py` (venues, regions, phone, email, hours, geo, founding year), then rebuild. Setting `opening_hours`, `geo` and `founded` switches them on in the LocalBusiness schema automatically.
 
@@ -33,9 +33,9 @@ Photo slots fill themselves from the `photos/` folder; see `photos/README.md` fo
 
 ## Security
 
-- Every page carries a Content Security Policy that only runs the page's own scripts (matched by SHA-256 hash; no `unsafe-inline` for scripts, no inline event handlers).
-- `site/_headers` adds HSTS, `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and cross-origin isolation headers on Cloudflare Pages or Netlify. GitHub Pages ignores this file, so only the in-page policy applies there.
-- The site is static: no database, logins or server code. The quote form opens the visitor's own email or WhatsApp.
+See `SECURITY.md` for the full checklist and what remains for launch. In short: no secrets anywhere, a hash-based Content Security Policy on every page, security headers in `site/_headers`, fonts served from the site itself (no third-party requests except the contact page map), and no server code.
+
+Fonts do not load when a page is opened straight from disk (`file://`), because browsers block that; the text falls back to system fonts. To review locally with the real fonts, run `python3 -m http.server` inside `site/` and open the address it prints.
 
 ## Deploy
 

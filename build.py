@@ -110,6 +110,7 @@ CSS = (":root{" + _LIGHT + "}\n@media (prefers-color-scheme:dark){:root:not([dat
 [hidden]{display:none!important}*{box-sizing:border-box}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.7 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{font-variation-settings:"SOFT" 100,"WONK" 0}
 h1,h2,h3,h4{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-optical-sizing:auto;line-height:1.14;letter-spacing:-.015em;margin:0 0 .5em;text-wrap:balance}
 h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.25rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
 h1 em{font-style:italic;font-weight:400;color:var(--gold-ink)}.hero h1 em{color:var(--gold-on-deep)}
@@ -399,8 +400,12 @@ footer .social a:hover{background:var(--gold);border-color:var(--gold);color:var
 @media print{header.site,.wa,footer,.demo-ribbon,.cta,.noprint{display:none!important}body{background:#fff}}
 """
 
-FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..600,100;1,9..144,400..600,100&family=Plus+Jakarta+Sans:wght@400..700&display=swap">')
+# Fonts are served from the site itself (fonts/, SIL Open Font License), so no third-party requests are made.
+FONTS = ('<link rel="preload" href="__ASSETS__fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
+         '<link rel="preload" href="__ASSETS__fonts/fraunces-latin-full-normal.woff2" as="font" type="font/woff2" crossorigin>')
+FONT_CSS = ('@font-face{font-family:"Plus Jakarta Sans";font-style:normal;font-weight:200 800;font-display:swap;src:url(__ASSETS__fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2")}'
+            '@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url(__ASSETS__fonts/fraunces-latin-full-normal.woff2) format("woff2")}'
+            '@font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;src:url(__ASSETS__fonts/fraunces-latin-full-italic.woff2) format("woff2")}')
 
 # Minimal crown mark: redrawn from the client's crown, without the figures, script lettering or tagline.
 LOGO_SVG = (f'<svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="{DEEP}" stroke="{ACCENT}" stroke-width="1"/>'
@@ -529,8 +534,8 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 })();
 """
 
-CSP_BASE = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; "
+CSP_BASE = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; "
+            "font-src 'self'; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; "
             "object-src 'none'; base-uri 'self'; form-action 'self'")
 SCRIPT_HASHES = set()
 def with_csp(page):
@@ -569,7 +574,7 @@ def _layout(here, title, desc, body, schema, scripts="", og_type="website", noin
 <meta name="theme-color" content="{DEEP}">
 <link rel="icon" href="{link('/assets/favicon.svg', here) if not PROD else '/assets/favicon.svg'}" type="image/svg+xml">
 {FONTS}
-<style>{CSS}</style>
+<style>{FONT_CSS}{CSS}</style>
 {schema}
 </head>
 <body>
@@ -581,7 +586,7 @@ def _layout(here, title, desc, body, schema, scripts="", og_type="website", noin
 {body}
 </main>
 {footer(here)}
-<a class="wa" href="{B['whatsapp']}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20to%20plan%20a%20team%20event." rel="noopener" data-ev="whatsapp_float" aria-label="Chat with us on WhatsApp">{WA_ICON}<span>WhatsApp</span></a>
+<a class="wa" href="{B['whatsapp']}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20to%20plan%20a%20team%20event." rel="noopener noreferrer" data-ev="whatsapp_float" aria-label="Chat with us on WhatsApp">{WA_ICON}<span>WhatsApp</span></a>
 {scripts}
 </body>
 </html>"""
@@ -598,7 +603,7 @@ def faq_block(faqs, heading="Frequently asked questions", sub="Straight answers 
 def cta(here, title="Planning a team event?", text="Send your group size, dates and budget. We reply with venue options and a quote."):
     return (f'<section class="tight"><div class="wrap"><div class="cta"><div><h2>{E(title)}</h2><p>{E(text)}</p></div>'
             f'<div class="actions" style="margin:0"><a class="btn btn-gold" href="{link("/contact-us/#quote", here)}" data-ev="cta_band">Request a quote</a>'
-            f'<a class="btn btn-line" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener" data-ev="whatsapp_band">WhatsApp us</a></div></div></div></section>')
+            f'<a class="btn btn-line" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener noreferrer" data-ev="whatsapp_band">WhatsApp us</a></div></div></div></section>')
 
 def drive_chart(here, regions=REGIONS, title="How far each region is from Nairobi"):
     # Collapsed travel-time list: one line when closed, readable on phones when open.
@@ -1177,14 +1182,14 @@ def fitness(here):
 <dl class="nap" style="margin-top:24px"><dt>Call</dt><dd><a href="tel:{B['phone']}">{B['phone_display']}</a></dd><dt>Email</dt><dd><a href="mailto:{B['email']}">{B['email']}</a></dd></dl></div>
 <form class="wizard" id="fitform" novalidate>
 <div class="fgrid2">
-<div><label for="f-name">Your name</label><input id="f-name" name="Name" required autocomplete="name"></div>
-<div><label for="f-co">Company</label><input id="f-co" name="Company" required autocomplete="organization"></div>
-<div><label for="f-em">Work email</label><input id="f-em" name="Email" type="email" required autocomplete="email"></div>
-<div><label for="f-ph">Phone</label><input id="f-ph" name="Phone" type="tel" autocomplete="tel"></div>
-<div><label for="f-n">Staff taking part</label><input id="f-n" name="Staff" type="number" min="1" inputmode="numeric"></div>
-<div><label for="f-loc">Office location</label><input id="f-loc" name="Location" placeholder="e.g. Westlands, Nairobi"></div>
+<div><label for="f-name">Your name</label><input id="f-name" name="Name" maxlength="100" required autocomplete="name"></div>
+<div><label for="f-co">Company</label><input id="f-co" name="Company" maxlength="120" required autocomplete="organization"></div>
+<div><label for="f-em">Work email</label><input id="f-em" name="Email" maxlength="254" type="email" required autocomplete="email"></div>
+<div><label for="f-ph">Phone</label><input id="f-ph" name="Phone" maxlength="30" type="tel" autocomplete="tel"></div>
+<div><label for="f-n">Staff taking part</label><input id="f-n" name="Staff" type="number" min="1" max="5000" inputmode="numeric"></div>
+<div><label for="f-loc">Office location</label><input id="f-loc" name="Location" maxlength="120" placeholder="e.g. Westlands, Nairobi"></div>
 <div class="full"><label for="f-type">Session types of interest</label><select id="f-type" name="Sessions"><option>Not sure yet</option><option>Zumba</option><option>Aerobics</option><option>Calisthenics</option><option>High-intensity</option><option>Interval or circuit training</option><option>A mix</option></select></div>
-<div class="full"><label for="f-msg">Preferred days and anything else</label><textarea id="f-msg" name="Notes" rows="3"></textarea></div>
+<div class="full"><label for="f-msg">Preferred days and anything else</label><textarea id="f-msg" name="Notes" maxlength="1500" rows="3"></textarea></div>
 </div>
 <p class="err" id="f-err" role="alert"></p>
 <div class="wnav"><button class="btn btn-gold" type="submit" data-ev="fit_submit">Send request</button></div>
@@ -1365,7 +1370,7 @@ def checklist(here):
 <div id="planner"><h2>Budget planner</h2><p class="muted small">Enter the figures from your quotes in Kenya shillings. Nothing is sent anywhere.</p>
 <form class="planner" id="pl">
 <div class="fgrid2">
-<div><label for="p-n">People</label><input id="p-n" type="number" min="1" value="50" inputmode="numeric"></div>
+<div><label for="p-n">People</label><input id="p-n" type="number" min="1" max="5000" value="50" inputmode="numeric"></div>
 <div><label for="p-v">Venue package per person</label><input id="p-v" type="number" min="0" value="0" inputmode="numeric"></div>
 <div><label for="p-nights">Nights</label><input id="p-nights" type="number" min="0" value="0" inputmode="numeric"></div>
 <div><label for="p-room">Accommodation per person per night</label><input id="p-room" type="number" min="0" value="0" inputmode="numeric"></div>
@@ -1438,17 +1443,17 @@ def contact(here):
 <fieldset class="wstep" data-step="0" style="border:0;padding:0;margin:0"><legend class="sr">About you</legend>
 <h2 style="font-size:1.4rem">About you</h2>
 <div class="fgrid2">
-<div><label for="q-name">Your name</label><input id="q-name" name="Name" required autocomplete="name"></div>
-<div><label for="q-co">Company</label><input id="q-co" name="Company" required autocomplete="organization"></div>
-<div><label for="q-em">Work email</label><input id="q-em" name="Email" type="email" required autocomplete="email"></div>
-<div><label for="q-ph">Phone or WhatsApp</label><input id="q-ph" name="Phone" type="tel" required autocomplete="tel"></div>
+<div><label for="q-name">Your name</label><input id="q-name" name="Name" maxlength="100" required autocomplete="name"></div>
+<div><label for="q-co">Company</label><input id="q-co" name="Company" maxlength="120" required autocomplete="organization"></div>
+<div><label for="q-em">Work email</label><input id="q-em" name="Email" maxlength="254" type="email" required autocomplete="email"></div>
+<div><label for="q-ph">Phone or WhatsApp</label><input id="q-ph" name="Phone" maxlength="30" type="tel" required autocomplete="tel"></div>
 </div></fieldset>
 
 <fieldset class="wstep" data-step="1" hidden style="border:0;padding:0;margin:0"><legend class="sr">Your event</legend>
 <h2 style="font-size:1.4rem">Your event</h2>
 <div class="fgrid2">
 <div class="full"><label for="q-svc">What do you need?</label><select id="q-svc" name="Service"><option>Team building event</option><option>Venue booking only</option><option>Corporate fitness</option><option>Transport hire</option><option>Getaway or expedition</option></select></div>
-<div><label for="q-n">Group size</label><input id="q-n" name="Group size" type="number" min="1" required inputmode="numeric"></div>
+<div><label for="q-n">Group size</label><input id="q-n" name="Group size" type="number" min="1" max="5000" required inputmode="numeric"></div>
 <div><label for="q-d">Preferred date</label><input id="q-d" name="Preferred date" type="date" required><label class="chk" for="q-flex"><input id="q-flex" type="checkbox" name="Dates flexible" value="Yes">My dates are flexible</label></div>
 <div class="full"><span style="display:block;font-weight:700;margin-bottom:6px">Duration</span><div class="radio-cards" role="radiogroup">
 <label><input type="radio" name="Duration" value="Half day"><b>Half day</b><small>At your office or nearby</small></label>
@@ -1461,14 +1466,14 @@ def contact(here):
 <label for="q-reg">Region</label><select id="q-reg" name="Region"><option>Not sure, please suggest</option><option>At our office</option>{regs}</select>
 <div style="margin-top:16px"><span style="display:block;font-weight:700">Venues added to your quote</span><div class="picked" id="picked"></div>
 <p class="hint" id="picked-hint">None yet. You can <a href="{link('/venues/', here)}">browse venues</a> and add any you like.</p></div>
-<div style="margin-top:12px"><label for="q-ven">Other venues you have in mind</label><input id="q-ven" name="Other venues"></div>
+<div style="margin-top:12px"><label for="q-ven">Other venues you have in mind</label><input id="q-ven" name="Other venues" maxlength="300"></div>
 </fieldset>
 
 <fieldset class="wstep" data-step="3" hidden style="border:0;padding:0;margin:0"><legend class="sr">Budget and notes</legend>
 <h2 style="font-size:1.4rem">Budget and anything else</h2>
 <label for="q-b">Budget per person</label><select id="q-b" name="Budget per person">{bopts}</select>
 <p class="hint">A rough range helps us shortlist venues you can afford. Try the <a href="{link('/planning-checklist/#planner', here)}">budget planner</a>.</p>
-<div style="margin-top:12px"><label for="q-m">Goals, activities or questions</label><textarea id="q-m" name="Notes" rows="4"></textarea></div>
+<div style="margin-top:12px"><label for="q-m">Goals, activities or questions</label><textarea id="q-m" name="Notes" maxlength="1500" rows="4"></textarea></div>
 <h3 style="margin-top:20px">Your request</h3><pre class="review" id="review"></pre>
 <p class="hint">By sending, you agree we may contact you about this request. See our <a href="{link('/privacy-policy/', here)}">privacy policy</a>.</p>
 </fieldset>
@@ -1492,7 +1497,7 @@ def contact(here):
 <dl class="nap">
 <dt>Office</dt><dd>{E(B['street'])}, {B['city']}</dd>
 <dt>Phone</dt><dd><a href="tel:{B['phone']}" data-ev="tel_contact">{B['phone_display']}</a></dd>
-<dt>WhatsApp</dt><dd><a href="{B['whatsapp']}" rel="noopener" data-ev="whatsapp_contact">{B['phone_display']}</a></dd>
+<dt>WhatsApp</dt><dd><a href="{B['whatsapp']}" rel="noopener noreferrer" data-ev="whatsapp_contact">{B['phone_display']}</a></dd>
 <dt>Email</dt><dd><a href="mailto:{B['email']}" data-ev="email_contact">{B['email']}</a></dd>
 <dt>Hours</dt><dd>{E(B['hours_display'])}</dd>
 </dl>
@@ -1503,7 +1508,7 @@ def contact(here):
 <script>
 (function(){{var f=document.getElementById('quote'),steps=[].slice.call(f.querySelectorAll('.wstep')),prog=[].slice.call(f.querySelectorAll('.progress li')),cur=0,
 next=document.getElementById('next'),back=document.getElementById('back'),send=document.getElementById('send'),err=document.getElementById('q-err');
-function picked(){{var v=window.CMA.get(),box=document.getElementById('picked');box.innerHTML='';v.forEach(function(n){{var s=document.createElement('span');s.textContent=n;box.appendChild(s)}});document.getElementById('picked-hint').style.display=v.length?'none':'block';}}
+function picked(){{var v=window.CMA.get(),box=document.getElementById('picked');box.textContent='';v.forEach(function(n){{var s=document.createElement('span');s.textContent=n;box.appendChild(s)}});document.getElementById('picked-hint').style.display=v.length?'none':'block';}}
 var dt=document.getElementById('q-d');
 function today(){{var n=new Date();return n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2)}}
 function setMin(){{dt.min=today()}}setMin();dt.addEventListener('focus',setMin);
@@ -1521,7 +1526,7 @@ var sent=document.getElementById('sent');
 function done(){{window.setTimeout(function(){{f.reset();window.CMA.set([]);show(0);f.hidden=true;sent.hidden=false;sent.focus();window.dataLayer.push({{event:'quote_sent'}})}},400)}}
 document.getElementById('again').addEventListener('click',function(){{sent.hidden=true;f.hidden=false;show(0)}});
 document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());done();}});
-document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener');done();}});
+document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener,noreferrer');done();}});
 document.addEventListener('shortlist',picked);show(0);
 var h1=document.querySelector('h1');if(h1)h1.focus&&false;}})();
 </script>
@@ -1673,6 +1678,10 @@ for name, txt in extras().items():
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     with open(fp, "w") as fh:
         fh.write(txt)
+FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+os.makedirs(os.path.join(OUT, "assets", "fonts"), exist_ok=True)
+for n in os.listdir(FONT_DIR):
+    shutil.copy2(os.path.join(FONT_DIR, n), os.path.join(OUT, "assets", "fonts"))
 if os.path.isdir(PHOTO_DIR):
     for root, _, names in os.walk(PHOTO_DIR):
         for n in names:
