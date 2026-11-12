@@ -105,6 +105,13 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .ph figcaption b{color:var(--ink)}
 .ph.has-img::before{display:none}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ph .wm{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(1.1rem,3.2vw,2.2rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.82);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-18deg);pointer-events:none}
+/* hero collage: one large photo, two small; still, no motion */
+.collage{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:12px;aspect-ratio:1/1}
+.collage .ph{aspect-ratio:auto;height:100%;min-height:0}.collage .ph:first-child{grid-row:1/3}
+.collage .ph figcaption{margin:10px;padding:0 10px;border-block:6px solid var(--card);font-size:.76rem;line-height:1.4;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.collage .ph .wm{font-size:clamp(.7rem,1.6vw,1.1rem)}
+@media (max-width:900px){.collage{aspect-ratio:16/11}.collage .ph:not(:first-child) figcaption{-webkit-line-clamp:2}}
+@media (max-width:900px) and (min-width:620px) and (orientation:landscape){.hero .collage{aspect-ratio:5/4}}
 .ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
 figure{margin:0}
 /* cards */
