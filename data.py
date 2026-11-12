@@ -22,6 +22,9 @@ BUSINESS = {
     # Google Business Profile figures, supplied by the agency on the date below. Re-check before launch.
     "google": {"rating": "4.9", "reviews": 18, "as_of": "November 2026",
                "url": "https://www.google.com/maps/search/?api=1&query=Crown+Masters+Adventures+Park+Place+Parklands+Nairobi"},
+    # Real Google reviews only, copied word for word. Each entry: {"name": "...", "text": "...", "date": "March 2026"}.
+    # Leave empty until the review text has been supplied; nothing is shown until then.
+    "reviews": [],
     "social": {
         "Facebook": "https://www.facebook.com/crownmastersadventures",
         "Instagram": "https://www.instagram.com/crownmastersadventures",

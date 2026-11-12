@@ -594,6 +594,12 @@ def home(here):
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
     logos = "".join(f'<div class="logo-slot">Client logo {i}</div>' for i in range(1, 7))
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
+    if B["reviews"]:
+        reviews = '<div class="grid3" style="margin-top:20px">' + "".join(
+            f'<figure class="quote-card"><p class="stars" aria-hidden="true">{STAR * 5}</p><blockquote>“{E(r["text"])}”</blockquote>'
+            f'<figcaption><b>{E(r["name"])}</b> · Google review{", " + E(r["date"]) if r.get("date") else ""}</figcaption></figure>' for r in B["reviews"]) + "</div>"
+    else:
+        reviews = confirm("Review quotes go here. Paste 3 to 6 reviews from the Google Business Profile, word for word with the reviewer's name, and they will appear as cards under the rating. Re-check the rating and review count at launch.")
     body = f"""
 <section class="hero"><div class="wrap split">
 <div>
@@ -651,9 +657,9 @@ def home(here):
 <div><p class="stars" role="img" aria-label="Rated {G['rating']} out of 5 on Google">{STAR * 5}</p>
 <p class="rating-t">Rated {G['rating']} out of 5 on Google, from {G['reviews']} reviews.</p>
 <p class="small muted" style="margin:0">Figures from our Google Business Profile, {G['as_of']}.</p></div>
-<div class="actions" style="margin:0"><a class="btn btn-line" href="{G['url']}" rel="noopener" data-ev="google_reviews">Read the reviews on Google</a></div>
+<div class="actions" style="margin:0"><a class="btn btn-line" href="{G['url']}" target="_blank" rel="noopener noreferrer" data-ev="google_reviews">Read the reviews on Google<span class="sr"> (opens in a new tab)</span></a></div>
 </div>
-{confirm("Rating and review count were read from the Google Business Profile and should be re-checked at launch. To quote individual reviews here, supply 3 to 6 with each reviewer's permission, name, role and company.")}
+{reviews}
 </div></section>
 
 <section class="band"><div class="wrap">
