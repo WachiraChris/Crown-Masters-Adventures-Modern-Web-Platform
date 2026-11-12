@@ -549,7 +549,8 @@ def layout(here, title, desc, body, schema, scripts="", og_type="website", noind
 
 def _layout(here, title, desc, body, schema, scripts="", og_type="website", noindex=False):
     canonical = DOMAIN + here if here != "/404.html" else DOMAIN + "/"
-    robots = "noindex, follow" if noindex else "index, follow, max-image-preview:large, max-snippet:-1"
+    # demo builds (the review sandbox) are never indexable; only the production build is
+    robots = "noindex, nofollow" if not PROD else "noindex, follow" if noindex else "index, follow, max-image-preview:large, max-snippet:-1"
     ribbon = "" if PROD else f'<div class="demo-ribbon">Demo v2 for review. Yellow notes mark items to confirm. <a href="{link("/", here)}">Home</a></div>'
     return f"""<!doctype html>
 <html lang="en-KE">
