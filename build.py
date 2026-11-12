@@ -193,6 +193,29 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .ph figcaption b{color:var(--ink)}
 .ph.has-img::before{display:none}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ph .wm{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(1.1rem,3.2vw,2.2rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.82);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-18deg);pointer-events:none}
+/* home hero with a photo slideshow behind the headline */
+.hero-bg{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;min-height:clamp(540px,82vh,800px);padding:clamp(48px,7vw,96px) 0 clamp(72px,8vw,104px)}
+.hero-bg>.wrap{position:relative;z-index:3;width:100%}
+.hero-text{max-width:660px}.hero-bg h1,.hero-bg .lede{text-shadow:0 2px 24px rgba(0,0,0,.35)}
+.hero-bg .lede{color:color-mix(in srgb,var(--on-deep) 92%,transparent)}
+.hero-slides,.hero-scrim{position:absolute;inset:0}.hero-slides{z-index:0;background:var(--deep)}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.6s cubic-bezier(.4,0,.2,1)}.hero-slide.on{opacity:1}
+.hero-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.14);transition:transform 9s cubic-bezier(.2,.6,.2,1);transform-origin:70% 40%}
+.hero-slide:nth-child(even) img{transform-origin:30% 60%}.hero-slide.on img{transform:scale(1.02)}
+.hero-scrim{z-index:1;background:linear-gradient(90deg,color-mix(in srgb,var(--deep) 94%,transparent) 0%,color-mix(in srgb,var(--deep) 82%,transparent) 42%,color-mix(in srgb,var(--deep) 30%,transparent) 100%),linear-gradient(to top,color-mix(in srgb,var(--deep) 75%,transparent) 0%,transparent 34%)}
+.hero-wm{position:absolute;z-index:2;right:6%;top:42%;font:700 clamp(1rem,2.6vw,2rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.32em;text-transform:uppercase;color:rgba(255,255,255,.55);text-shadow:0 1px 10px rgba(0,0,0,.5);transform:rotate(-14deg);pointer-events:none}
+.hero-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:clamp(28px,5vw,56px)}
+.hero-dots{display:flex;gap:8px}
+.hero-dot{position:relative;width:44px;height:28px;padding:0;background:none;border:0;cursor:pointer}
+.hero-dot::before,.hero-dot i{content:"";position:absolute;left:0;top:13px;height:2px;border-radius:2px}
+.hero-dot::before{width:100%;background:color-mix(in srgb,var(--on-deep) 35%,transparent)}
+.hero-dot i{width:0;background:var(--gold-on-deep)}.hero-dot[aria-current] i{width:100%}.hero-bg.run .hero-dot[aria-current] i{animation:show-fill 6s linear both}
+.hero-pause{background:none;border:1px solid color-mix(in srgb,var(--on-deep) 40%,transparent);border-radius:8px;padding:5px 12px;min-height:32px;color:var(--on-deep);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
+.hero-note{font-size:.78rem;color:color-mix(in srgb,var(--on-deep) 75%,transparent);margin-left:auto}
+@media (max-width:900px){.hero-scrim{background:linear-gradient(to top,color-mix(in srgb,var(--deep) 96%,transparent) 0%,color-mix(in srgb,var(--deep) 82%,transparent) 55%,color-mix(in srgb,var(--deep) 70%,transparent) 100%)}.hero-wm{display:none}.hero-note{margin-left:0;flex-basis:100%}}
+@media (max-width:760px){.hero-bg{min-height:0}}
+@media (max-height:520px) and (orientation:landscape){.hero-bg{min-height:0;padding:28px 0 32px}.hero-ctl{margin-top:16px}}
+@media (pointer:coarse){.hero-dot{height:44px}.hero-dot::before,.hero-dot i{top:21px}.hero-pause{min-height:44px}}
 /* hero collage: one large photo, two small; still, no motion */
 .collage{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:12px;aspect-ratio:1/1}
 .collage .ph{aspect-ratio:auto;height:100%;min-height:0}.collage .ph:first-child{grid-row:1/3}
@@ -636,7 +659,7 @@ SHOWCASE = [  # (label, one factual line, photo slot caption)
 SHOW_JS = r"""
 (function(){var d=document,el=d.querySelector('.show');if(!el)return;
 var S=[].slice.call(el.querySelectorAll('.show-slide')),T=[].slice.call(el.querySelectorAll('.show-tab')),btn=el.querySelector('.show-pause'),
-i=0,t,user=false,hover=false,seen=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+i=0,t,user=true,hover=false,seen=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 function tick(){clearTimeout(t);el.classList.remove('run');if(user||hover||reduce||!seen)return;void el.offsetWidth;el.classList.add('run');t=setTimeout(function(){go(i+1)},6500)}
 function go(n){var p=i;n=(n+S.length)%S.length;if(n===p){tick();return}
 S[p].classList.remove('on');S[p].classList.add('out');setTimeout(function(){S[p].classList.remove('out')},1100);T[p].removeAttribute('aria-current');
@@ -647,10 +670,57 @@ el.addEventListener('focusin',function(){hover=true;tick()});el.addEventListener
 btn.addEventListener('click',function(){user=!user;btn.setAttribute('aria-pressed',user);btn.textContent=user?'Play':'Pause';tick()});
 var x0=null;el.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
 el.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>40)go(i+(dx<0?1:-1))},{passive:true});
-if(reduce){btn.hidden=true}
+btn.hidden=true;
 if('IntersectionObserver' in window){new IntersectionObserver(function(en){seen=en[0].isIntersecting;tick()},{threshold:.35}).observe(el)}else{seen=true;tick()}
 })();
 """
+
+HERO_SLOTS = [  # background slideshow behind the home headline, in order
+    "two teams competing in an outdoor challenge, wide shot showing the venue",
+    "rafting team at Sagana",
+    "a group on the lawn of a lakeside resort",
+    "indoor problem-solving challenge",
+    "venue lawn or main activity area",
+]
+HERO_JS = r"""
+(function(){var d=document,root=d.querySelector('.hero-bg');if(!root)return;
+var S=[].slice.call(root.querySelectorAll('.hero-slide')),D=[].slice.call(root.querySelectorAll('.hero-dot')),btn=root.querySelector('.hero-pause'),
+i=0,t,paused=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+function load(el){var im=el.querySelector('img[data-src]');if(im){im.src=im.getAttribute('data-src');im.removeAttribute('data-src')}}
+function tick(){clearTimeout(t);root.classList.remove('run');if(paused||reduce||d.hidden||S.length<2)return;void root.offsetWidth;root.classList.add('run');t=setTimeout(function(){go(i+1)},6000)}
+function go(n){S[i].classList.remove('on');D[i].removeAttribute('aria-current');i=(n+S.length)%S.length;load(S[i]);load(S[(i+1)%S.length]);
+S[i].classList.add('on');D[i].setAttribute('aria-current','true');tick()}
+D.forEach(function(b,n){b.addEventListener('click',function(){go(n)})});
+if(btn)btn.addEventListener('click',function(){paused=!paused;btn.setAttribute('aria-pressed',paused);btn.textContent=paused?'Play':'Pause';tick()});
+d.addEventListener('visibilitychange',tick);
+if(reduce||S.length<2){var c=root.querySelector('.hero-ctl');if(c)c.hidden=true;return}
+function start(){load(S[1]);tick()}
+if(d.readyState==='complete')start();else window.addEventListener('load',start);
+})();
+"""
+
+def hero(here):
+    text = f"""<p class="eyebrow">Corporate team building · Nairobi, Kenya</p>
+<h1>Team building in Kenya, <em>planned and run for you</em></h1>
+<p class="lede">We plan the programme, book the venue, get your team there and facilitate the day, from Nairobi gardens to Naivasha, Sagana, Nanyuki and the coast.</p>
+<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_hero">Request a quote</a><a class="btn btn-line" href="{link('/venues/', here)}">Browse {TOTAL} venues</a></div>
+<p class="small muted" style="margin-top:16px">Prefer to talk? Call or WhatsApp <a href="tel:{B['phone']}" data-ev="tel_hero">{B['phone_display']}</a></p>"""
+    shots = [photo_src(c) for c in HERO_SLOTS]
+    shots = [(src, stand_in) for src, stand_in in shots if src]
+    if not shots:  # no photos supplied yet: plain hero with one photo slot
+        return f'<section class="hero"><div class="wrap split"><div>{text}</div>{photo(HERO_SLOTS[0], "tall")}</div></section>'
+    slides = "".join(
+        f'<div class="hero-slide{" on" if n == 0 else ""}"><img {"src" if n == 0 else "data-src"}="{src}" alt=""{" fetchpriority=\"high\"" if n == 0 else ""} decoding="async"></div>'
+        for n, (src, _) in enumerate(shots))
+    dots = "".join(f'<button type="button" class="hero-dot"{" aria-current=\"true\"" if n == 0 else ""} aria-label="Show photo {n + 1} of {len(shots)}"><i></i></button>' for n in range(len(shots)))
+    stand_in = any(st for _, st in shots)
+    wm = '<span class="hero-wm" aria-hidden="true">Placeholder</span>' if stand_in else ""
+    note = '<span class="hero-note">Placeholder photos, to be replaced with client event photos</span>' if stand_in else ""
+    return f"""<section class="hero hero-bg">
+<div class="hero-slides" aria-hidden="true">{slides}</div><div class="hero-scrim" aria-hidden="true"></div>{wm}
+<div class="wrap"><div class="hero-text">{text}</div>
+<div class="hero-ctl"><div class="hero-dots">{dots}</div><button type="button" class="hero-pause" aria-pressed="false">Pause</button>{note}</div>
+</div></section>"""
 
 def showcase():
     slides, tabs = [], []
@@ -685,16 +755,7 @@ def home(here):
     else:
         reviews = confirm("Review quotes go here. Paste 3 to 6 reviews from the Google Business Profile, word for word with the reviewer's name, and they will appear as cards under the rating. Re-check the rating and review count at launch.")
     body = f"""
-<section class="hero"><div class="wrap split">
-<div>
-<p class="eyebrow">Corporate team building · Nairobi, Kenya</p>
-<h1>Team building in Kenya, <em>planned and run for you</em></h1>
-<p class="lede">We plan the programme, book the venue, get your team there and facilitate the day, from Nairobi gardens to Naivasha, Sagana, Nanyuki and the coast.</p>
-<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_hero">Request a quote</a><a class="btn btn-line" href="{link('/venues/', here)}">Browse {TOTAL} venues</a></div>
-<p class="small muted" style="margin-top:16px">Prefer to talk? Call or WhatsApp <a href="tel:{B['phone']}" data-ev="tel_hero">{B['phone_display']}</a></p>
-</div>
-<div class="collage">{photo("a client team mid-activity outdoors, faces visible and energetic (landscape, at least 1600 px wide)")}{photo("rafting team at Sagana")}{photo("a group on the lawn of a lakeside resort")}</div>
-</div></section>
+{hero(here)}
 
 <section class="tight"><div class="wrap">
 <p class="eyebrow">Trusted by teams at</p>
@@ -765,7 +826,7 @@ def home(here):
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
                   f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
-                  body, schema, scripts=f"<script>{SHOW_JS}</script>")
+                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{SHOW_JS}</script>")
 add("/", home)
 
 # ---------------- team building pillar
