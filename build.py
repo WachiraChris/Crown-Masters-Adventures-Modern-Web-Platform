@@ -622,11 +622,18 @@ def add(path, fn):
     pages.append((path, fn))
 
 # ---------------- home
+G = B["google"]
 FAQ_HOME = [
     ("What does Crown Masters Adventures do?",
      f"Crown Masters Adventures is a Nairobi-based team building company. We plan and facilitate corporate team building events, book team building venues across Kenya, Tanzania and Uganda, run corporate fitness programmes at your office, and arrange group transport, getaways and expeditions."),
-    ("Where can we hold a team building event in Kenya?",
+    ("Where can we find a team building venue in Kenya?",
      f"We work with {TOTAL} venues in {len(REGIONS)} regions: day-trip gardens around Nairobi, lakeside resorts in Naivasha, Nakuru and Elementaita, river and adventure camps in Sagana, highland lodges in Nanyuki, and beach hotels in Mombasa and Diani. We also book venues in Tanzania, Zanzibar and Uganda."),
+    ("How do we find the best team building facilitators in Kenya?",
+     f"The best facilitators for your team are the ones who build the day around your goal, not a fixed list of games. Ask who will run your event on the day, how they handle safety on activities such as rafting, what happens if it rains, and how they close the day with a debrief. At Crown Masters Adventures our facilitators plan and run the programme, and clients rate us {G['rating']} out of 5 on Google from {G['reviews']} reviews ({G['as_of']})."),
+    ("Are there affordable team building packages in Kenya?",
+     "Yes. The price per person depends mostly on the venue, travel distance, meals and whether you stay overnight. The most affordable options are a half-day session at your own office or a day trip to a garden venue around Nairobi, on a weekday outside the November and December peak. Tell us your budget per person and we build the package to fit it."),
+    ("What should we look for in the best corporate team building companies in Kenya?",
+     f"Look for one company that handles the facilitation, venue, meals and transport together, gives a written quote priced per person, offers a real choice of venues, and can show reviews from other organisations. Crown Masters Adventures is based in Parklands, Nairobi, plans and facilitates the programme, books from {TOTAL} venues in {len(REGIONS)} regions, and arranges group transport."),
     ("How much does corporate team building cost in Kenya?",
      "The cost depends on group size, the venue, whether you stay overnight, transport and the activities you choose. Send us your headcount, dates and budget and we quote options that fit. Our free budget planner shows how each cost adds up."),
     ("How far ahead should we book?",
@@ -637,7 +644,6 @@ FAQ_HOME = [
      f"Request a quote online, call or WhatsApp {B['phone_display']}, or email {B['email']}. Tell us your group size, dates and budget and we reply with options."),
 ]
 
-G = B["google"]
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
 CL_JS = r"""
@@ -778,7 +784,7 @@ def home(here):
 <section class="band"><div class="wrap">
 <h2>Planning guides</h2>
 <p class="muted">Practical answers for whoever has been asked to organise this year's event.</p>
-<div class="grid3" style="margin-top:24px">{guides}</div>
+<div class="grid4" style="margin-top:24px">{guides}</div>
 </div></section>
 
 {faq_block(FAQ_HOME)}
@@ -798,6 +804,8 @@ TB_FAQ = [
     ("What is corporate team building?", "Corporate team building is a planned day or retreat of group activities that helps colleagues communicate, cooperate and trust each other. A facilitator runs the activities and links them back to how the team works day to day."),
     ("How long does a team building event last?", "Most events are a single day at a venue near Nairobi, roughly from a morning departure to an early evening return. Retreats in Naivasha, Nanyuki or the coast usually run two or three days with overnight stays."),
     ("Can you tailor activities to our goals?", "Yes. Tell us what you want the team to come away with, such as better communication, a new team getting to know each other, or a reward for a strong year, and we design the programme around it."),
+    ("What do your team building packages include?", "Each package is built for the group: a facilitated programme, the venue booking, meals at the venue, and transport if you need it. Overnight retreats add accommodation. We quote per person and show each cost line, so you can adjust the package to fit your budget."),
+    ("Who facilitates the day?", "Our facilitators run the activities. They brief the group, keep the programme on time, and end with a debrief that links the activities back to how the team works."),
     ("Do you provide transport?", "Yes. We arrange executive transport so your group travels to and from the venue together."),
     ("What should staff wear and bring?", "Comfortable clothes and closed shoes for outdoor activities, a hat, sunscreen and a water bottle. For overnight trips we send a packing list with the programme."),
 ]
@@ -1238,6 +1246,8 @@ ARTICLES = [
      "A step-by-step plan for organisers: goals, budget, dates, venue, activities and logistics.", "plan"),
     ("/blog/team-building-venues-near-nairobi/", "Team building near Nairobi: day trip or overnight?",
      "How travel time, budget and goals decide between a one-day event and a retreat.", "near"),
+    ("/blog/choose-team-building-company-kenya/", "How to choose a team building company in Kenya",
+     "What to check before you hire team building facilitators: fit, safety, venues, pricing and proof.", "choose"),
     ("/blog/team-building-budget-kenya/", "What goes into a team building budget in Kenya",
      "Every cost line explained, so your quote holds no surprises.", "budget"),
 ]
@@ -1266,6 +1276,19 @@ def article(path, title, summary, key):
 <h2 id="s3">When to stay overnight</h2><ul><li>Leadership and strategy retreats that need two days of thinking time</li><li>Reward trips, where rest is part of the purpose</li><li>Teams from different offices meeting for the first time</li><li>Programmes that include an evening event</li></ul>
 <h2 id="s4">Regions compared</h2><div class="tscroll"><table class="t"><thead><tr><th>Region</th><th>Travel from Nairobi</th><th>Best for</th><th>Venues</th></tr></thead><tbody>{rows}</tbody></table></div>
 <p class="small muted">Travel times are approximate and depend on traffic.</p>"""
+        elif key == "choose":
+            toc = ["Start from your goal", "Ask who will facilitate on the day", "Check how safety is handled", "Look at venues and logistics together", "Compare quotes line by line", "Where affordable packages really save money", "Ask for proof", "Questions to send every provider", "How Crown Masters Adventures fits"]
+            content = f"""
+<p>Searches for the best team building facilitators or the best corporate team building companies in Kenya return long lists that all sound alike. The best company for your team is the one that fits your goal, your group and your budget. These checks help an HR or admin lead compare providers fairly.</p>
+<h2 id="s1">Start from your goal</h2><p>Decide what the day is for before you ask for quotes: a new team getting to know each other, better communication between departments, or a reward after a strong year. A good provider asks about this first and shapes the programme around it. Be wary of a fixed list of games sent before anyone has asked what you want to achieve.</p>
+<h2 id="s2">Ask who will facilitate on the day</h2><p>The facilitator matters more than the venue. Ask who will lead your event, how many facilitators come for your group size, and how they end the day. A short debrief that links the activities back to work is what separates team building from a day out.</p>
+<h2 id="s3">Check how safety is handled</h2><p>For adventure activities such as white-water rafting at Sagana or cycling at Hell's Gate, ask who provides the equipment, who briefs the group, and what the plan is for people who prefer not to take part. Ask about the wet-weather plan too, since rain can change an outdoor programme at short notice.</p>
+<h2 id="s4">Look at venues and logistics together</h2><p>An event has four moving parts: the venue, meals, transport and the programme. When one company handles all four, timings line up and there is one person to call. Ask how many venues the provider can offer in your preferred region, so you are choosing from options and not being steered to one place. Our <a href="{link('/venues/', here)}">venue directory</a> shows what is available by region.</p>
+<h2 id="s5">Compare quotes line by line</h2><p>Many organisations in Kenya need three quotes before approval. Send every provider the same brief (headcount, dates, region, goal and budget per person) so the quotes can be compared. Ask for each cost to be listed separately, and check that the provider issues a proper tax invoice your finance team can process. Our guide to <a href="{link('/blog/team-building-budget-kenya/', here)}">what goes into a team building budget</a> explains each line.</p>
+<h2 id="s6">Where affordable packages really save money</h2><p>Real savings come from the shape of the event, not from cutting the programme:</p><ul><li>A half-day at your office or a day trip around Nairobi avoids accommodation and long transport.</li><li>Weekdays and dates outside November and December are easier to book.</li><li>One full coach costs less per person than several small vehicles.</li><li>A venue package that includes meals is usually simpler than paying for each item.</li></ul><p>Savings to question: fewer facilitators than the group needs, no wet-weather plan, and no contingency in the budget.</p>
+<h2 id="s7">Ask for proof</h2><p>Read the provider's Google reviews, ask for photos from real events with groups of your size, and ask for a contact at an organisation like yours. Proof from similar teams tells you more than a long client list.</p>
+<h2 id="s8">Questions to send every provider</h2><ul><li>What will the programme look like for our goal and group size?</li><li>Who facilitates, and how many facilitators will attend?</li><li>Which venues do you recommend for our dates, and why?</li><li>What is included per person, line by line?</li><li>What deposit is needed, and what is the cancellation policy?</li><li>What happens if it rains or our headcount changes?</li></ul>
+<h2 id="s9">How Crown Masters Adventures fits</h2><p>{B['name']} is based in Parklands, Nairobi. We plan and facilitate the programme, book from {TOTAL} venues in {len(REGIONS)} regions across Kenya, Tanzania and Uganda, and arrange group transport, so one quote covers the whole event. Clients rate us {G['rating']} out of 5 on Google from {G['reviews']} reviews ({G['as_of']}). <a href="{link('/contact-us/#quote', here)}">Request a quote</a> with your group size, dates and budget per person.</p>"""
         else:
             toc = ["Venue", "Meals", "Accommodation", "Transport", "Facilitation and equipment", "Activity and park fees", "Contingency", "Questions to ask before you pay"]
             content = f"""
@@ -1310,7 +1333,7 @@ def blog(here):
 <section class="page-head"><div class="wrap">
 <h1>Team building planning guides</h1>
 <p class="lede">Practical guides for HR, admin and office managers who have been asked to organise the next team event.</p>
-<div class="grid3" style="margin-top:32px">{cards}</div>
+<div class="grid4" style="margin-top:32px">{cards}</div>
 {confirm("Publish one new guide a month. Suggested next topics: icebreakers for new teams, team building in the rainy season, a Naivasha retreat programme, and case studies from real events.")}
 </div></section>
 {cta(here)}
