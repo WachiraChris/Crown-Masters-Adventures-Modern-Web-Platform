@@ -1,0 +1,28 @@
+# Crown Masters Adventures
+User-agent: *
+Allow: /
+Disallow: /contact-us/thank-you/
+
+# Search and AI answer engines are welcome, so the business can be found and cited
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://crownmastersadventures.co.ke/sitemap.xml

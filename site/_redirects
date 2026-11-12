@@ -1,0 +1,9 @@
+# 301 redirects for Cloudflare Pages / Netlify. Keep legacy URLs alive.
+/home/            /                     301
+/teambuilding/    /team-building/       301
+/corporatefitness/ /corporate-fitness/  301
+/contact/         /contact-us/          301
+/newsite/*        /:splat               301
+/wp-content/uploads/2022/03/location-1024x683.jpg /assets/og-default.jpg 301
+/category/*       /blog/                301
+/feed/            /blog/                301

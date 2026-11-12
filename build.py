@@ -1,0 +1,1404 @@
+#!/usr/bin/env python3
+"""Crown Masters Adventures — static site generator (demo v2).
+
+  python3 build.py               demo build: links end in index.html, works from a folder or zip
+  python3 build.py --production  clean URLs (/venues/) for deployment
+Output goes to ./site
+"""
+import html, json, os, sys, shutil
+from data import DOMAIN, UPDATED, UPDATED_TEXT, BUSINESS as B, REGIONS, CORRECTIONS
+
+PROD = "--production" in sys.argv
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "site")
+E = lambda s: html.escape(str(s), quote=True)
+TOTAL = sum(len(r["venues"]) for r in REGIONS)
+for r in REGIONS:
+    r["count"] = len(r["venues"])
+
+# ------------------------------------------------------------------ paths
+def file_of(p):
+    p = p.split("#")[0]
+    last = p.rstrip("/").rsplit("/", 1)[-1]
+    if "." in last and not p.endswith("/"):
+        return p.lstrip("/")
+    return (p.strip("/") + "/index.html").lstrip("/")
+
+def link(target, here):
+    """Relative link from page `here` (production path) to `target` (production path)."""
+    if target.startswith(("http", "mailto:", "tel:")):
+        return target
+    anchor = ("#" + target.split("#", 1)[1]) if "#" in target else ""
+    if PROD:
+        return target.split("#")[0] + anchor
+    rel = os.path.relpath(file_of(target), os.path.dirname(file_of(here)) or ".")
+    return rel + anchor
+
+# ------------------------------------------------------------------ schema
+ORG_ID = DOMAIN + "/#business"
+def org():
+    o = {"@type": ["LocalBusiness", "TravelAgency"], "@id": ORG_ID, "name": B["name"],
+         "alternateName": "Crownmasters Adventures", "url": DOMAIN + "/",
+         "logo": DOMAIN + "/assets/logo.svg", "image": DOMAIN + "/assets/og-default.jpg",
+         "description": f"Nairobi-based corporate team building company: facilitated team building events, booking of {TOTAL} team building venues across Kenya, Tanzania and Uganda, corporate fitness and group transport.",
+         "telephone": B["phone"], "email": B["email"],
+         "address": {"@type": "PostalAddress", "streetAddress": B["street"], "addressLocality": B["city"], "addressCountry": B["country"]},
+         "areaServed": [{"@type": "Country", "name": n} for n in ("Kenya", "Tanzania", "Uganda")],
+         "sameAs": list(B["social"].values()),
+         "contactPoint": {"@type": "ContactPoint", "telephone": B["phone"], "email": B["email"], "contactType": "sales",
+                          "availableLanguage": ["English", "Swahili"]},
+         "knowsAbout": ["Corporate team building", "Team building facilitation", "Team building venues in Kenya",
+                        "Corporate fitness", "Corporate retreats", "Group transport"]}
+    if B["geo"]:
+        o["geo"] = {"@type": "GeoCoordinates", "latitude": B["geo"]["lat"], "longitude": B["geo"]["lng"]}
+    if B["opening_hours"]:
+        o["openingHours"] = B["opening_hours"]
+    if B["founded"]:
+        o["foundingDate"] = str(B["founded"])
+    return o
+
+def ld(*objs):
+    g = {"@context": "https://schema.org", "@graph": [org(), {"@type": "WebSite", "@id": DOMAIN + "/#website",
+         "url": DOMAIN + "/", "name": B["name"], "inLanguage": "en-KE", "publisher": {"@id": ORG_ID}}, *objs]}
+    return '<script type="application/ld+json">' + json.dumps(g, ensure_ascii=False, separators=(",", ":")) + "</script>"
+
+def crumbs_ld(items):
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i + 1, "name": n, "item": DOMAIN + p} for i, (n, p) in enumerate(items)]}
+
+def faq_ld(faqs, path):
+    return {"@type": "FAQPage", "@id": DOMAIN + path + "#faq", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faqs]}
+
+def service_ld(path, name, stype, desc):
+    return {"@type": "Service", "@id": DOMAIN + path + "#service", "name": name, "serviceType": stype,
+            "description": desc, "provider": {"@id": ORG_ID}, "url": DOMAIN + path,
+            "areaServed": [{"@type": "Country", "name": "Kenya"}]}
+
+def page_ld(path, name, typ="WebPage"):
+    return {"@type": typ, "@id": DOMAIN + path + "#webpage", "url": DOMAIN + path, "name": name,
+            "isPartOf": {"@id": DOMAIN + "/#website"}, "about": {"@id": ORG_ID}, "dateModified": UPDATED, "inLanguage": "en-KE"}
+
+# ------------------------------------------------------------------ design
+CSS = r"""
+:root{--ink:#14262B;--ink-2:#46595E;--paper:#F6F8F5;--card:#FFFFFF;--line:#D5DDD7;--soft:#ECF2EC;--gold:#E3A91B;--gold-ink:#7A5600;--grass:#2C6A39;--grass-2:#E1EEE1;--focus:#1D5FD1;--warn-bg:#FFF5DB;--warn-line:#E8C35A;--shadow:0 1px 2px rgba(20,38,43,.06),0 8px 24px rgba(20,38,43,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#E9EFEA;--ink-2:#B1C0B8;--paper:#0E1A1D;--card:#152428;--line:#2A3D42;--soft:#18292D;--gold:#F0BE45;--gold-ink:#F0BE45;--grass:#82C78F;--grass-2:#1B3127;--warn-bg:#2E2712;--warn-line:#8A6B1E;--shadow:none}}
+:root[data-theme="dark"]{--ink:#E9EFEA;--ink-2:#B1C0B8;--paper:#0E1A1D;--card:#152428;--line:#2A3D42;--soft:#18292D;--gold:#F0BE45;--gold-ink:#F0BE45;--grass:#82C78F;--grass-2:#1B3127;--warn-bg:#2E2712;--warn-line:#8A6B1E;--shadow:none}
+[hidden]{display:none!important}*{box-sizing:border-box}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.62 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Source Sans 3",system-ui,sans-serif;line-height:1.12;letter-spacing:-.012em;margin:0 0 .5em;text-wrap:balance}
+h1{font-size:clamp(2.3rem,5.6vw,4.2rem);font-weight:800}h2{font-size:clamp(1.65rem,3.2vw,2.4rem);font-weight:700}h3{font-size:1.25rem;font-weight:700}h4{font-size:1.05rem}
+p{margin:0 0 1em;max-width:68ch}ul,ol{max-width:68ch}
+a{color:var(--grass);overflow-wrap:anywhere}a:hover{color:var(--ink)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+img,svg{max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.narrow{max-width:760px}
+.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:8px;background:var(--card);padding:8px 12px;z-index:20}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* header */
+header.site{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;min-height:68px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:800 1.1rem/1.1 "Bricolage Grotesque",sans-serif;margin-right:auto}
+.brand small{display:block;font:600 .72rem "Source Sans 3",sans-serif;color:var(--ink-2);letter-spacing:.02em}
+.nav{display:flex;list-style:none;margin:0;padding:0;gap:2px}
+.nav>li{position:relative}
+.nav a,.nav .top{display:block;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--ink);font-weight:600;white-space:nowrap}
+.nav a:hover,.nav .top:hover{background:var(--grass-2);color:var(--ink)}
+.nav [aria-current="page"],.nav .here>.top{color:var(--grass);box-shadow:inset 0 -2px 0 var(--grass)}
+.sub{display:none;position:absolute;left:0;top:100%;min-width:260px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;list-style:none;margin:0;box-shadow:var(--shadow)}
+.nav>li:hover>.sub,.nav>li:focus-within>.sub{display:block}
+.sub a{font-weight:500;white-space:normal}
+.shortlist{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem;background:var(--card)}
+.shortlist b{background:var(--gold);color:#1C1400;border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:.8rem}
+.shortlist[data-n="0"]{display:none}@media (max-width:600px){.shortlist .sl-t{display:none}.brand small{display:none}}
+.menu-btn{display:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--ink);font:700 1rem "Source Sans 3",sans-serif}
+@media (max-width:1020px){.menu-btn{display:block}.navwrap{display:none;position:absolute;left:0;right:0;top:68px;background:var(--paper);border-bottom:1px solid var(--line);max-height:calc(100vh - 68px);overflow:auto;padding:8px 16px 20px}.navwrap.open{display:block}.nav{flex-direction:column}.sub{display:block;position:static;border:0;box-shadow:none;padding:0 0 8px 12px;background:none}.bar .hdr-cta{display:none}}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:999px;font:700 1rem "Source Sans 3",sans-serif;text-decoration:none;border:2px solid transparent;cursor:pointer;line-height:1.2}
+.btn-gold{background:var(--gold);color:#1C1400}.btn-gold:hover{filter:brightness(1.06);color:#1C1400}
+.btn-line{border-color:currentColor;color:var(--ink);background:transparent}
+.btn-sm{padding:6px 12px;font-size:.9rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+/* layout */
+section{padding:72px 0}section.tight{padding:40px 0}
+.band{background:var(--grass-2)}.band-ink{background:var(--ink);color:var(--paper)}.band-ink a{color:var(--gold)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+@media (max-width:960px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:minmax(0,1fr)}}
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+@media (max-width:900px){.split{grid-template-columns:minmax(0,1fr)}}
+.lede{font-size:1.22rem;color:var(--ink-2);max-width:60ch}
+.muted{color:var(--ink-2)}.small{font-size:.92rem}
+.crumbs{font-size:.92rem;color:var(--ink-2);padding-top:20px}
+.crumbs ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0}
+.crumbs li+li::before{content:"/";margin-right:6px;color:var(--line)}
+.crumbs a{color:var(--ink-2)}
+.page-head{padding:24px 0 40px}
+/* answer box */
+.answer{border-left:4px solid var(--gold);background:var(--card);padding:16px 20px;border-radius:0 12px 12px 0;margin:24px 0;max-width:72ch;box-shadow:var(--shadow)}
+.answer p{margin:0}
+/* to-confirm flags */
+.confirm{display:flex;gap:12px;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:12px;padding:12px 16px;font-size:.95rem;margin:16px 0;max-width:72ch}
+.confirm::before{content:"!";flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#1C1400;font-weight:800}
+.tbc{display:inline-block;font-size:.78rem;font-weight:700;color:var(--gold-ink);background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:999px;padding:1px 8px;white-space:nowrap}
+/* photo slots */
+.ph{position:relative;border-radius:20px;overflow:hidden;background:linear-gradient(135deg,var(--grass-2),var(--soft));aspect-ratio:4/3;display:flex;align-items:flex-end;border:1px solid var(--line)}
+.ph::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0 14px,color-mix(in srgb,var(--grass) 7%,transparent) 14px 15px)}
+.ph svg.mtn{position:absolute;inset:auto 0 0 0;width:100%;height:55%;opacity:.5}
+.ph figcaption{position:relative;margin:16px;background:var(--card);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--ink-2);box-shadow:var(--shadow)}
+.ph figcaption b{color:var(--ink)}
+.ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
+figure{margin:0}
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card h3 a{color:var(--ink);text-decoration:none}.card h3 a::after{content:"";position:absolute;inset:0}
+.card.link{position:relative}.card.link:hover{border-color:var(--grass)}
+.card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
+.icon{width:44px;height:44px;border-radius:12px;background:var(--grass-2);display:grid;place-items:center;margin-bottom:16px;color:var(--grass)}
+/* trust */
+.logos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+@media (max-width:800px){.logos{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.logo-slot{height:64px;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;font-size:.8rem;color:var(--ink-2);background:var(--card)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:24px}
+@media (max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{border-top:3px solid var(--ink);padding-top:12px}
+.stat b{display:block;font:800 2rem "Bricolage Grotesque",sans-serif}
+.quote-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin:0}
+.quote-card blockquote{margin:0 0 16px;font-size:1.1rem}
+.quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
+/* drive-time chart */
+.dt{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.dt h2,.dt h3{font-size:1.15rem;margin-bottom:4px}
+.dt svg{display:block;width:100%;height:auto}
+.dt a{text-decoration:none}
+.dt a:hover text.lbl{fill:var(--grass);text-decoration:underline}
+/* steps */
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;max-width:none}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
+.steps li{counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--paper);font:800 1.15rem "Bricolage Grotesque",sans-serif;margin-bottom:12px}
+/* agenda */
+.agenda{list-style:none;padding:0;margin:0;border-left:3px solid var(--gold);max-width:none}
+.agenda li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;padding:0 0 18px 20px;position:relative}
+.agenda li::before{content:"";position:absolute;left:-9px;top:6px;width:15px;height:15px;border-radius:50%;background:var(--paper);border:3px solid var(--grass)}
+.agenda time{font-weight:700}
+/* tabs */
+.tabs [role=tablist]{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.tabs [role=tab]{padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 1rem "Source Sans 3",sans-serif;cursor:pointer}
+.tabs [role=tab][aria-selected=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs [role=tabpanel]{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.tabs dl{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px 24px;margin:0}
+@media (max-width:600px){.tabs dl{grid-template-columns:minmax(0,1fr)}}
+.tabs dt{font-weight:700}.tabs dd{margin:0}
+/* faq */
+details{border-top:1px solid var(--line)}details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;padding:18px 0;font:700 1.12rem/1.3 "Bricolage Grotesque",sans-serif;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:1.5rem;line-height:1;color:var(--grass);flex:none}
+details[open] summary::after{content:"\2212"}
+details>div{padding-bottom:16px}
+/* cta */
+.cta{background:var(--ink);color:var(--paper);border-radius:24px;padding:48px 40px;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center}
+.cta h2{margin:0 0 .25em}.cta p{margin:0;color:color-mix(in srgb,var(--paper) 78%,transparent)}
+.cta .btn-line{color:var(--paper)}
+@media (max-width:600px){.cta{padding:32px 20px}}
+/* venues */
+.finder{position:sticky;top:68px;z-index:5;background:var(--paper);padding:14px 0 10px;border-bottom:1px solid var(--line)}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.frow input[type=search]{flex:1 1 260px;padding:12px 16px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:inherit}
+.frow select{width:auto;flex:0 1 auto;padding:10px 12px;border-radius:999px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:thin}
+.chip{flex:none;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 .93rem "Source Sans 3",sans-serif;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.result-count{font-size:.95rem;color:var(--ink-2);margin:12px 0 0}
+.region{padding:44px 0;border-bottom:1px solid var(--line);scroll-margin-top:200px}
+.region-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.region-head h2{font-size:clamp(1.35rem,2.4vw,1.8rem);margin:0}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.tag{font-size:.85rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
+.vgrid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:none}
+@media (max-width:900px){.vgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.vgrid{grid-template-columns:minmax(0,1fr)}}
+.vcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.vcard .vn{font-weight:700;line-height:1.3}
+.vcard .vs{display:block;font-size:.85rem;color:var(--ink-2);font-weight:400}
+.add{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;font:700 .85rem "Source Sans 3",sans-serif;cursor:pointer;white-space:nowrap}
+.add[aria-pressed=true]{background:var(--grass);border-color:var(--grass);color:#fff}
+.empty{display:none;padding:32px 0}
+/* forms */
+label{display:block;font-weight:700;margin-bottom:6px}
+input,select,textarea{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--grass);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--grass) 25%,transparent)}
+.hint{font-size:.9rem;color:var(--ink-2);margin:4px 0 0}
+.err{color:#B3261E;font-size:.9rem;font-weight:700;margin:6px 0 0;min-height:1.2em}
+.fgrid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:600px){.fgrid2{grid-template-columns:minmax(0,1fr)}}
+.full{grid-column:1/-1}
+.radio-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:600px){.radio-cards{grid-template-columns:minmax(0,1fr)}}
+.radio-cards label{font-weight:600;border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--card);margin:0;display:flex;gap:10px;align-items:flex-start}
+.radio-cards input{width:auto;margin-top:4px}
+.radio-cards label:has(input:checked){border-color:var(--grass);background:var(--grass-2)}
+.radio-cards small{display:block;font-weight:400;color:var(--ink-2)}
+.wizard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow)}
+@media (max-width:600px){.wizard{padding:20px 16px}}
+.progress{display:flex;gap:6px;list-style:none;padding:0;margin:0 0 24px;max-width:none}
+.progress li{flex:1;font-size:.82rem;font-weight:700;color:var(--ink-2);border-top:4px solid var(--line);padding-top:8px}
+.progress li.on{color:var(--ink);border-color:var(--gold)}
+.progress li.done{border-color:var(--grass)}
+.wstep[hidden]{display:none}
+.wnav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.review{background:var(--soft);border-radius:12px;padding:16px;white-space:pre-wrap;font:inherit;font-size:.95rem;margin:0}
+.picked{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.picked span{background:var(--grass-2);border-radius:999px;padding:4px 10px;font-size:.9rem;font-weight:600}
+dl.nap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 20px;margin:0}
+dl.nap dt{font-weight:700}dl.nap dd{margin:0}
+.map{border:0;width:100%;aspect-ratio:4/3;border-radius:16px;background:var(--soft)}
+/* checklist + planner */
+.check{list-style:none;padding:0;max-width:none}
+.check li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.check input{width:20px;height:20px;margin-top:3px;flex:none;accent-color:var(--grass)}
+.check label{font-weight:500;margin:0}
+.check input:checked+label{color:var(--ink-2);text-decoration:line-through}
+.planner{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+.ptotal{background:var(--ink);color:var(--paper);border-radius:14px;padding:20px;margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ptotal b{display:block;font:800 1.7rem "Bricolage Grotesque",sans-serif}
+/* article */
+.prose{max-width:720px}.prose h2{margin-top:1.6em;font-size:1.7rem}.prose li{margin:.35em 0}
+.byline{font-size:.95rem;color:var(--ink-2);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:24px 0}
+.toc ol{margin:8px 0 0;padding-left:1.2em}
+table.t{border-collapse:collapse;width:100%;font-size:.97rem;margin:16px 0}
+table.t th,table.t td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t th{font-weight:700;background:var(--soft)}
+.tscroll{overflow-x:auto}
+/* footer */
+footer{border-top:1px solid var(--line);padding:56px 0 110px;font-size:.97rem;color:var(--ink-2);background:var(--card)}
+footer h2{font-size:1rem;color:var(--ink);margin-bottom:12px}
+footer ul{list-style:none;padding:0;margin:0}footer li{margin:7px 0}footer a{color:var(--ink-2)}
+.fcols{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px}
+@media (max-width:960px){.fcols{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:480px){.fcols{grid-template-columns:minmax(0,1fr)}}
+.legal{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:.9rem}
+.wa{position:fixed;right:16px;bottom:16px;z-index:9;background:#1E8F4E;color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;gap:8px;align-items:center}
+.wa:hover{color:#fff;background:#18773F}
+.demo-ribbon{background:var(--ink);color:var(--paper);font-size:.85rem;text-align:center;padding:6px 16px}
+.demo-ribbon a{color:var(--gold)}
+@media print{header.site,.wa,footer,.demo-ribbon,.cta,.noprint{display:none!important}body{background:#fff}}
+"""
+
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Source+Sans+3:wght@400;500;600;700&display=swap">')
+
+LOGO_SVG = ('<svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#14262B"/>'
+            '<path d="M8.5 23.5 10.6 12l4.7 5.4L18 9.5l2.7 7.9 4.7-5.4 2.1 11.5z" fill="#E3A91B"/><rect x="8.5" y="25" width="19" height="2.4" rx="1.2" fill="#E3A91B"/></svg>')
+
+ICONS = {
+    "team": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c2.8 0 5 2.2 5 5"/></svg>',
+    "pin": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    "fit": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>',
+    "bus": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16M7 21v-4M17 21v-4"/><circle cx="8" cy="14" r=".5"/><circle cx="16" cy="14" r=".5"/></svg>',
+    "indoor": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg>',
+    "mountain": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 20 9 7l4 6 3-4 6 11z"/></svg>',
+    "screen": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+    "heart": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/></svg>',
+}
+WA_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 0 0 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.7-1.2 2.2 2.2 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg>'
+
+MTN = '<svg class="mtn" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120 70 52l40 36 70-74 60 58 40-30 120 78z" fill="var(--grass)" opacity=".35"/><path d="M0 120 110 76l60 26 90-50 140 68z" fill="var(--grass)" opacity=".5"/></svg>'
+
+def photo(caption, cls=""):
+    return f'<figure class="ph {cls}" role="img" aria-label="Photo placeholder: {E(caption)}">{MTN}<figcaption><b>Photo to supply:</b> {E(caption)}</figcaption></figure>'
+
+def confirm(text):
+    return f'<p class="confirm"><span><b>To confirm with client:</b> {text}</span></p>'
+
+# ------------------------------------------------------------------ navigation
+NAV = [
+    ("/team-building/", "Team building", [("/team-building/", "Overview"), ("/team-building/indoor/", "Indoor team building"),
+        ("/team-building/outdoor-adventure/", "Outdoor and adventure"), ("/team-building/virtual-hybrid/", "Virtual and hybrid"),
+        ("/team-building/transport-logistics/", "Transport and logistics")]),
+    ("/venues/", "Venues", [("/venues/", f"All {TOTAL} venues")] + [(f"/venues/{r['slug']}/", r["short"]) for r in REGIONS[:6]] + [("/venues/#regions", "More regions")]),
+    ("/corporate-fitness/", "Corporate fitness", [("/corporate-fitness/", "Office fitness programmes"), ("/corporate-fitness/wellness-days/", "Wellness days")]),
+    ("/blog/", "Guides", None),
+    ("/about-us/", "About", None),
+    ("/contact-us/", "Contact", None),
+]
+
+def header(here):
+    items = []
+    for path, name, sub in NAV:
+        active = here == path or (path != "/" and here.startswith(path))
+        if sub:
+            subl = "".join(f'<li><a href="{link(p, here)}"{" aria-current=\"page\"" if p == here else ""}>{E(n)}</a></li>' for p, n in sub)
+            items.append(f'<li class="{"here" if active else ""}"><a class="top" href="{link(path, here)}">{E(name)}</a><ul class="sub">{subl}</ul></li>')
+        else:
+            items.append(f'<li><a href="{link(path, here)}"{" aria-current=\"page\"" if active else ""}>{E(name)}</a></li>')
+    return f"""<header class="site"><div class="wrap bar">
+<a class="brand" href="{link('/', here)}" aria-label="{B['name']} home">{LOGO_SVG}<span>Crown Masters<small>Adventures{(' · since ' + str(B['founded'])) if B['founded'] else ''}</small></span></a>
+<nav class="navwrap" id="menu" aria-label="Main"><ul class="nav">{''.join(items)}</ul></nav>
+<a class="shortlist" data-n="0" href="{link('/contact-us/#quote', here)}" aria-label="Venues added to your quote"><b class="sl-count">0</b><span class="sl-t">In quote</span></a>
+<a class="btn btn-gold btn-sm hdr-cta" href="{link('/contact-us/#quote', here)}" data-ev="cta_header">Request a quote</a>
+<button class="menu-btn" aria-expanded="false" aria-controls="menu">Menu</button>
+</div></header>"""
+
+def footer(here):
+    reg = "".join(f'<li><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></li>' for r in REGIONS)
+    svc = "".join(f'<li><a href="{link(p, here)}">{E(n)}</a></li>' for p, n in [
+        ("/team-building/", "Team building events"), ("/team-building/outdoor-adventure/", "Outdoor and adventure"),
+        ("/team-building/indoor/", "Indoor team building"), ("/team-building/transport-logistics/", "Transport and logistics"),
+        ("/corporate-fitness/", "Corporate fitness"), ("/corporate-fitness/wellness-days/", "Wellness days")])
+    res = "".join(f'<li><a href="{link(p, here)}">{E(n)}</a></li>' for p, n in [
+        ("/blog/", "Planning guides"), ("/planning-checklist/", "Checklist and budget planner"), ("/about-us/", "About us"),
+        ("/contact-us/", "Contact"), ("/privacy-policy/", "Privacy policy")])
+    soc = " · ".join(f'<a href="{u}" rel="noopener me">{n}</a>' for n, u in B["social"].items())
+    return f"""<footer><div class="wrap">
+<div class="fcols">
+<div><h2>{B['name']}</h2><p>Corporate team building, venue booking, corporate fitness and group transport across Kenya, Tanzania and Uganda.</p>
+<address style="font-style:normal;line-height:1.9">{E(B['street'])}, {B['city']}<br><a href="tel:{B['phone']}" data-ev="tel_footer">{B['phone_display']}</a><br><a href="mailto:{B['email']}" data-ev="email_footer">{B['email']}</a><br>{E(B['hours_display'])}</address></div>
+<div><h2>Services</h2><ul>{svc}</ul></div>
+<div><h2>Venue regions</h2><ul>{reg}</ul></div>
+<div><h2>Resources</h2><ul>{res}</ul></div>
+<div><h2>Follow us</h2><p style="line-height:2">{soc}</p></div>
+</div>
+<div class="legal"><span>© 2026 {B['name']}. All rights reserved.</span><span>Last updated <time datetime="{UPDATED}">{UPDATED_TEXT}</time></span></div>
+</div></footer>"""
+
+COMMON_JS = r"""
+(function(){
+var d=document;
+var b=d.querySelector('.menu-btn'),m=d.getElementById('menu');
+if(b)b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+window.dataLayer=window.dataLayer||[];
+d.addEventListener('click',function(e){var a=e.target.closest('[data-ev]');if(a)window.dataLayer.push({event:a.getAttribute('data-ev')})});
+var KEY='cma_shortlist';
+function get(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(x){return []}}
+function set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(x){}paint()}
+function paint(){var v=get();d.querySelectorAll('.shortlist').forEach(function(s){s.setAttribute('data-n',v.length);s.querySelector('.sl-count').textContent=v.length});
+ d.querySelectorAll('.add').forEach(function(btn){var on=v.indexOf(btn.dataset.v)>-1;btn.setAttribute('aria-pressed',on);btn.textContent=on?'Added':'Add to quote';btn.setAttribute('aria-label',(on?'Remove ':'Add ')+btn.dataset.v+(on?' from':' to')+' your quote')});
+ var ev=new CustomEvent('shortlist',{detail:v});d.dispatchEvent(ev);}
+d.addEventListener('click',function(e){var btn=e.target.closest('.add');if(!btn)return;var v=get(),i=v.indexOf(btn.dataset.v);if(i>-1)v.splice(i,1);else{v.push(btn.dataset.v);window.dataLayer.push({event:'venue_add',venue:btn.dataset.v})}set(v)});
+window.CMA={get:get,set:set};
+if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',paint);
+})();
+"""
+
+def layout(here, title, desc, body, schema, scripts="", og_type="website", noindex=False):
+    canonical = DOMAIN + here if here != "/404.html" else DOMAIN + "/"
+    robots = "noindex, follow" if noindex else "index, follow, max-image-preview:large, max-snippet:-1"
+    ribbon = "" if PROD else f'<div class="demo-ribbon">Demo v2 for review. Yellow notes mark items to confirm. <a href="{link("/", here)}">Home</a></div>'
+    return f"""<!doctype html>
+<html lang="en-KE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{E(title)}</title>
+<meta name="description" content="{E(desc)}">
+<link rel="canonical" href="{canonical}">
+<meta name="robots" content="{robots}">
+<meta property="og:type" content="{og_type}"><meta property="og:site_name" content="{B['name']}"><meta property="og:locale" content="en_KE">
+<meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta property="og:url" content="{canonical}">
+<meta property="og:image" content="{DOMAIN}/assets/og-default.jpg"><meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#14262B">
+<link rel="icon" href="{link('/assets/favicon.svg', here) if not PROD else '/assets/favicon.svg'}" type="image/svg+xml">
+{FONTS}
+<style>{CSS}</style>
+{schema}
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+{ribbon}
+{header(here)}
+<script>{COMMON_JS}</script>
+<main id="main">
+{body}
+</main>
+{footer(here)}
+<a class="wa" href="{B['whatsapp']}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20to%20plan%20a%20team%20event." rel="noopener" data-ev="whatsapp_float" aria-label="Chat with us on WhatsApp">{WA_ICON}<span>WhatsApp</span></a>
+{scripts}
+</body>
+</html>"""
+
+# ------------------------------------------------------------------ shared blocks
+def crumbs(items, here):
+    lis = "".join(f'<li><a href="{link(p, here)}">{E(n)}</a></li>' if p != here else f'<li aria-current="page">{E(n)}</li>' for n, p in items)
+    return f'<nav class="crumbs wrap" aria-label="Breadcrumb"><ol>{lis}</ol></nav>'
+
+def faq_block(faqs, heading="Frequently asked questions", sub="Straight answers to the questions HR and admin teams ask us most."):
+    items = "".join(f"<details><summary>{E(q)}</summary><div><p>{E(a)}</p></div></details>" for q, a in faqs)
+    return f'<section id="faq"><div class="wrap grid2"><div><h2>{heading}</h2><p class="muted">{sub}</p></div><div>{items}</div></div></section>'
+
+def cta(here, title="Planning a team event?", text="Send your group size, dates and budget. We reply with venue options and a quote."):
+    return (f'<section class="tight"><div class="wrap"><div class="cta"><div><h2>{E(title)}</h2><p>{E(text)}</p></div>'
+            f'<div class="actions" style="margin:0"><a class="btn btn-gold" href="{link("/contact-us/#quote", here)}" data-ev="cta_band">Request a quote</a>'
+            f'<a class="btn btn-line" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener" data-ev="whatsapp_band">WhatsApp us</a></div></div></div></section>')
+
+def drive_chart(here, regions=REGIONS, title="How far each region is from Nairobi"):
+    rows = len(regions)
+    h = 56 + rows * 38 + 34
+    x0, x1, maxh = 250, 700, 8
+    X = lambda v: x0 + (x1 - x0) * v / maxh
+    out = [f'<svg viewBox="0 0 760 {h}" role="img" aria-labelledby="dt-t"><title id="dt-t">{E(title)}, approximate typical travel time</title>']
+    for t in range(0, maxh + 1, 2):
+        out.append(f'<line x1="{X(t)}" x2="{X(t)}" y1="44" y2="{h - 26}" stroke="var(--line)"/><text x="{X(t)}" y="{h - 8}" text-anchor="middle" font-size="14" fill="var(--ink-2)">{t} h</text>')
+    for i, r in enumerate(regions):
+        y = 64 + i * 38
+        out.append(f'<a href="{link("/venues/" + r["slug"] + "/", here)}">'
+                   f'<text class="lbl" x="0" y="{y + 5}" font-size="16" font-weight="600" fill="var(--ink)">{E(r["short"])}</text>'
+                   f'<text x="{x0 - 12}" y="{y + 5}" font-size="14" text-anchor="end" fill="var(--ink-2)">{r["count"]}</text>'
+                   f'<line x1="{x0}" x2="{X(r["hours"])}" y1="{y}" y2="{y}" stroke="var(--gold)" stroke-width="4" stroke-linecap="round"/>'
+                   f'<circle cx="{X(r["hours"])}" cy="{y}" r="7" fill="var(--card)" stroke="var(--grass)" stroke-width="3"/></a>')
+    out.append(f'<text x="{x0 - 12}" y="30" font-size="13" text-anchor="end" fill="var(--ink-2)">Venues</text><text x="{x0}" y="30" font-size="13" fill="var(--ink-2)">Typical door-to-door travel time from Nairobi</text></svg>')
+    return (f'<div class="dt"><h3>{E(title)}</h3><p class="small muted" style="margin:0 0 8px">Approximate. Road times depend on traffic; coast, west and cross-border times assume a flight or the SGR train. Select a region to see its venues.</p>'
+            + "".join(out) + '</div>')
+
+def venue_card(v, region):
+    tbc = v.endswith("?")
+    name = v.rstrip("?")
+    flag = ' <span class="tbc">name to confirm</span>' if tbc else ""
+    return (f'<li class="vcard" data-n="{E(name.lower())}"><span class="vn">{E(name)}{flag}<span class="vs">{E(region["setting"])}</span></span>'
+            f'<button type="button" class="add" data-v="{E(name)}" aria-pressed="false">Add to quote</button></li>')
+
+TRIP = {"day": "Day trips", "overnight": "Overnight stays", "both": "Day trips or overnight"}
+
+# ================================================================== PAGES
+pages = []
+def add(path, fn):
+    pages.append((path, fn))
+
+# ---------------- home
+FAQ_HOME = [
+    ("What does Crown Masters Adventures do?",
+     f"Crown Masters Adventures is a Nairobi-based team building company. We plan and facilitate corporate team building events, book team building venues across Kenya, Tanzania and Uganda, run corporate fitness programmes at your office, and arrange group transport, getaways and expeditions."),
+    ("Where can we hold a team building event in Kenya?",
+     f"We work with {TOTAL} venues in {len(REGIONS)} regions: day-trip gardens around Nairobi, lakeside resorts in Naivasha, Nakuru and Elementaita, river and adventure camps in Sagana, highland lodges in Nanyuki, and beach hotels in Mombasa and Diani. We also book venues in Tanzania, Zanzibar and Uganda."),
+    ("How much does corporate team building cost in Kenya?",
+     "The cost depends on group size, the venue, whether you stay overnight, transport and the activities you choose. Send us your headcount, dates and budget and we quote options that fit. Our free budget planner shows how each cost adds up."),
+    ("How far ahead should we book?",
+     "As early as you can. Popular resorts fill quickly for November and December year-end events and around public holidays, so start planning six to eight weeks ahead for those dates."),
+    ("Can you run team building at our office instead of a venue?",
+     "Yes. Indoor team building and our corporate fitness sessions only need an open space, such as a boardroom, a parking area, a rooftop or a nearby field."),
+    ("How do we book?",
+     f"Request a quote online, call or WhatsApp {B['phone_display']}, or email {B['email']}. Tell us your group size, dates and budget and we reply with options."),
+]
+
+def home(here):
+    services = [
+        ("team", "/team-building/", "Team building events", "Facilitated indoor, outdoor and adventure programmes built around what you want the team to come away with."),
+        ("pin", "/venues/", "Venue booking", f"We shortlist venues from {TOTAL} options that fit your budget and headcount, then handle the booking."),
+        ("fit", "/corporate-fitness/", "Corporate fitness", "Trainers come to your office with Zumba, aerobics, circuits and more, plus fitness testing and nutrition guidance."),
+        ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Executive transport hire to get your group to the venue and home again, on schedule."),
+    ]
+    svc = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in services)
+    feat = REGIONS[:6]
+    regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
+    logos = "".join(f'<div class="logo-slot">Client logo {i}</div>' for i in range(1, 7))
+    quotes = "".join(f'<figure class="quote-card"><blockquote>“Testimonial {i} to supply: one or two sentences from an HR or admin lead about a real event.”</blockquote><figcaption>Name, role, company · event and venue</figcaption></figure>' for i in (1, 2, 3))
+    guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
+    body = f"""
+<section class="hero" style="padding:48px 0 56px"><div class="wrap split">
+<div>
+<h1>Team building in Kenya, planned and run for you</h1>
+<p class="lede">We plan the programme, book the venue, get your team there and facilitate the day, from Nairobi gardens to Naivasha, Sagana, Nanyuki and the coast.</p>
+<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_hero">Request a quote</a><a class="btn btn-line" href="{link('/venues/', here)}">Browse {TOTAL} venues</a></div>
+<p class="small muted" style="margin-top:16px">Prefer to talk? Call or WhatsApp <a href="tel:{B['phone']}" data-ev="tel_hero">{B['phone_display']}</a></p>
+</div>
+{photo("a client team mid-activity outdoors, faces visible and energetic (landscape, at least 1600 px wide)", "tall")}
+</div></section>
+
+<section class="tight" style="padding-top:0"><div class="wrap">
+<p class="small muted" style="margin:0 0 12px">Trusted by teams at</p>
+<div class="logos">{logos}</div>
+<div class="stats">
+<div class="stat"><b>{TOTAL}</b>venues in {len(REGIONS)} regions</div>
+<div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
+<div class="stat"><b><span class="tbc">to supply</span></b>events delivered</div>
+<div class="stat"><b><span class="tbc">to supply</span></b>Google rating</div>
+</div>
+</div></section>
+
+<section class="tight"><div class="wrap">
+<div class="answer"><p><strong>In short:</strong> {B['name']} is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p></div>
+</div></section>
+
+<section style="padding-top:32px"><div class="wrap">
+<h2>What we do</h2>
+<p class="muted">Four services that work together, so one call covers the whole event.</p>
+<div class="grid4" style="margin-top:24px">{svc}</div>
+</div></section>
+
+<section class="band"><div class="wrap">
+<div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
+<p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
+<a class="btn btn-line" href="{link('/venues/', here)}">Compare all regions</a></div>
+<div style="margin-top:20px">{drive_chart(here)}</div>
+</div></section>
+
+<section><div class="wrap">
+<h2>How booking works</h2>
+<ol class="steps" style="margin-top:24px">
+<li><h3>Share the brief</h3><p>Group size, dates, budget and what you want the event to achieve.</p></li>
+<li><h3>Compare venues</h3><p>We send a shortlist with costs, so you can choose with your finance team.</p></li>
+<li><h3>Agree the programme</h3><p>Activities, meals, transport and timings, confirmed in writing before the day.</p></li>
+<li><h3>Your team takes part</h3><p>Our facilitators run the day, so the organiser joins in instead of managing it.</p></li>
+</ol>
+</div></section>
+
+<section class="band"><div class="wrap">
+<h2>Popular regions</h2>
+<div class="grid3" style="margin-top:24px">{regcards}</div>
+</div></section>
+
+<section><div class="wrap">
+<h2>What clients say</h2>
+{confirm("Supply 3 to 6 real testimonials with the person's name, role and company, and permission to publish. Google reviews can be embedded here once the Business Profile has them.")}
+<div class="grid3" style="margin-top:16px">{quotes}</div>
+</div></section>
+
+<section class="band"><div class="wrap">
+<h2>Planning guides</h2>
+<p class="muted">Practical answers for whoever has been asked to organise this year's event.</p>
+<div class="grid3" style="margin-top:24px">{guides}</div>
+</div></section>
+
+{faq_block(FAQ_HOME)}
+{cta(here)}
+"""
+    schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
+    return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
+                  f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
+                  body, schema)
+add("/", home)
+
+# ---------------- team building pillar
+TB_FAQ = [
+    ("What is corporate team building?", "Corporate team building is a planned day or retreat of group activities that helps colleagues communicate, cooperate and trust each other. A facilitator runs the activities and links them back to how the team works day to day."),
+    ("How long does a team building event last?", "Most events are a single day at a venue near Nairobi, roughly from a morning departure to an early evening return. Retreats in Naivasha, Nanyuki or the coast usually run two or three days with overnight stays."),
+    ("Can you tailor activities to our goals?", "Yes. Tell us what you want the team to come away with, such as better communication, a new team getting to know each other, or a reward for a strong year, and we design the programme around it."),
+    ("Do you provide transport?", "Yes. We arrange executive transport so your group travels to and from the venue together."),
+    ("What should staff wear and bring?", "Comfortable clothes and closed shoes for outdoor activities, a hat, sunscreen and a water bottle. For overnight trips we send a packing list with the programme."),
+]
+GROUPS = [
+    ("small", "Up to 20", "Leadership teams, departments, start-ups",
+     "Facilitated workshop plus a few focused challenges", "Boutique gardens near Nairobi, Nanyuki lodges", "One minibus or self-drive", "A day, or one night for a strategy retreat"),
+    ("mid", "20 to 80", "Departments and small companies",
+     "Rotating outdoor challenges in teams of 8 to 10, then a group finale", "Garden venues around Nairobi, Naivasha resorts", "One or two coaches", "A day, or two days and one night"),
+    ("large", "80 to 300", "Whole companies and year-end events",
+     "Several facilitators running stations in parallel, a shared opening and closing", "Large resorts in Naivasha, Machakos or the coast", "Several coaches on a timed schedule", "Usually a day; overnight at larger resorts"),
+    ("xl", "300 and above", "Large organisations, conferences with activities",
+     "A staged programme with lead and station facilitators, timed zones", "The largest resorts and grounds; confirmed per event", "Coach fleet and arrival waves", "Planned per event"),
+]
+
+def team_building(here):
+    formats = [("indoor", "/team-building/indoor/", "Indoor team building", "Problem-solving and communication challenges in a hall or boardroom."),
+               ("mountain", "/team-building/outdoor-adventure/", "Outdoor and adventure", "Obstacle courses, treasure hunts and rafting at lakes, rivers and gardens."),
+               ("screen", "/team-building/virtual-hybrid/", "Virtual and hybrid", "Sessions for teams spread across offices or working remotely."),
+               ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Coaches and timings that get everyone there and back.")]
+    fh = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in formats)
+    tabs = "".join(f'<button role="tab" id="tab-{k}" aria-controls="panel-{k}" aria-selected="{"true" if j == 0 else "false"}" tabindex="{0 if j == 0 else -1}">{E(n)} people</button>' for j, (k, n, *_ ) in enumerate(GROUPS))
+    panels = "".join(f'<div role="tabpanel" id="panel-{k}" aria-labelledby="tab-{k}" {"" if j == 0 else "hidden"}><dl><dt>Typical teams</dt><dd>{E(who)}</dd><dt>Format</dt><dd>{E(fmt)}</dd><dt>Where</dt><dd>{E(where)}</dd><dt>Transport</dt><dd>{E(tr)}</dd><dt>Length</dt><dd>{E(ln)}</dd></dl>{confirm("Events for 1,000+ people appear in the blueprint. Add a 1,000+ tier only once the client confirms they have delivered one.") if k == "xl" else ""}</div>' for j, (k, n, who, fmt, where, tr, ln) in enumerate(GROUPS))
+    body = f"""
+{crumbs([("Home", "/"), ("Team building", here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>Corporate team building in Kenya</h1>
+<div class="answer"><p>{B['name']} plans and runs corporate team building events in Kenya. We agree your goals, book a venue that fits your budget from {TOTAL} options, arrange transport and meals, and facilitate indoor, outdoor or adventure activities on the day, for teams from a handful of people to whole companies.</p></div>
+<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_tb">Request a quote</a><a class="btn btn-line" href="{link('/venues/', here)}">Find a venue</a></div></div>
+{photo("two teams competing in an outdoor challenge, wide shot showing the venue")}
+</div></section>
+
+<section style="padding-top:16px"><div class="wrap">
+<h2>Choose a format</h2>
+<div class="grid4" style="margin-top:24px">{fh}</div>
+</div></section>
+
+<section class="band"><div class="wrap">
+<h2>What changes with group size</h2>
+<p class="muted">Pick your headcount to see how we usually shape an event of that size.</p>
+<div class="tabs" id="sizes"><div role="tablist" aria-label="Group size">{tabs}</div>{panels}</div>
+</div></section>
+
+<section><div class="wrap grid2">
+<div><h2>Example one-day programme</h2><p class="muted">A typical day at a venue within two hours of Nairobi. Every programme is agreed with you in advance.</p>
+{photo("facilitator briefing a group before an activity", "wide")}</div>
+<ol class="agenda">
+<li><time>7:00</time><span>Coaches leave your office</span></li>
+<li><time>9:00</time><span>Arrival, tea and a welcome briefing</span></li>
+<li><time>9:30</time><span>Icebreakers to mix departments into teams</span></li>
+<li><time>10:30</time><span>Team challenges in rotation</span></li>
+<li><time>13:00</time><span>Lunch</span></li>
+<li><time>14:00</time><span>Group finale that needs every team to succeed</span></li>
+<li><time>15:30</time><span>Debrief: what worked and what the team takes back</span></li>
+<li><time>16:30</time><span>Coaches return to Nairobi</span></li>
+</ol>
+</div></section>
+
+<section class="band"><div class="wrap grid2">
+<div><h2>What a package covers</h2><p>Every event is quoted for your group. A typical package includes the items here; tell us what to leave out.</p></div>
+<ul style="line-height:2;margin:0">
+<li>A planning call and a written programme</li><li>Venue shortlist with prices, then the booking</li>
+<li>Facilitators and all activity equipment</li><li>Meals and refreshments arranged with the venue</li>
+<li>Transport to and from the venue (optional)</li><li>A debrief at the end of the day</li></ul>
+</div></section>
+
+<section><div class="wrap">
+<h2>Photos and video from past events</h2>
+<p class="muted">Hosted on this site, so visitors stay here instead of leaving for Facebook or YouTube.</p>
+<div class="grid3" style="margin-top:20px">{photo("rafting team at Sagana")}{photo("year-end group photo at a Naivasha resort")}{photo("indoor problem-solving challenge")}</div>
+</div></section>
+
+{faq_block(TB_FAQ)}
+{cta(here)}
+<script>
+(function(){{var tl=document.querySelector('#sizes [role=tablist]');if(!tl)return;var tabs=[].slice.call(tl.querySelectorAll('[role=tab]'));
+function sel(t){{tabs.forEach(function(x){{var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on}});t.focus()}}
+tabs.forEach(function(t,i){{t.addEventListener('click',function(){{sel(t)}});t.addEventListener('keydown',function(e){{if(e.key==='ArrowRight')sel(tabs[(i+1)%tabs.length]);if(e.key==='ArrowLeft')sel(tabs[(i-1+tabs.length)%tabs.length])}})}});}})();
+</script>
+"""
+    schema = ld(service_ld(here, "Corporate team building", "Corporate team building facilitation",
+                           "Planning and facilitation of corporate team building events in Kenya, with venue booking, transport and meals."),
+                crumbs_ld([("Home", "/"), ("Team building", here)]), faq_ld(TB_FAQ, here))
+    return layout(here, "Team Building Activities & Packages in Kenya | Crown Masters",
+                  "Facilitated corporate team building in Kenya: indoor, outdoor and adventure formats, sized for 10 to 300+ staff, with venue, transport and meals arranged.",
+                  body, schema)
+add("/team-building/", team_building)
+
+def sub_page(here, h1, title, desc, answer, sections, faqs, photo_caption, flag=None, stype=None):
+    secs = "".join(f'<section class="{"band" if i % 2 == 0 else ""}"><div class="wrap grid2"><div><h2>{E(h)}</h2>{intro}</div><div>{content}</div></div></section>' for i, (h, intro, content) in enumerate(sections))
+    body = f"""
+{crumbs([("Home", "/"), ("Team building", "/team-building/"), (h1, here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>{E(h1)}</h1>{confirm(flag) if flag else ""}
+<div class="answer"><p>{answer}</p></div>
+<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_sub">Request a quote</a></div></div>
+{photo(photo_caption)}
+</div></section>
+{secs}
+{faq_block(faqs)}
+{cta(here)}
+"""
+    schema = ld(service_ld(here, h1, stype or h1, desc), crumbs_ld([("Home", "/"), ("Team building", "/team-building/"), (h1, here)]), faq_ld(faqs, here))
+    return layout(here, title, desc, body, schema)
+
+def ul(items):
+    return "<ul style='line-height:1.9;margin:0'>" + "".join(f"<li>{i}</li>" for i in items) + "</ul>"
+
+add("/team-building/indoor/", lambda here: sub_page(here, "Indoor team building",
+    "Indoor Team Building in Nairobi | Crown Masters Adventures",
+    "Indoor team building in Nairobi: problem-solving challenges, communication games and icebreakers in your boardroom, a hotel hall or a venue conference room.",
+    "Indoor team building brings facilitated problem-solving, communication and creative challenges into a boardroom, hotel hall or conference room. It suits rainy-season dates, half-day sessions, and teams that cannot travel far from the office.",
+    [("When to choose indoor", "<p>Indoor sessions work well when time, weather or budget rule out a full day away.</p>",
+      ul(["Half-day sessions before or after work", "The long rains (roughly March to May) and short rains (roughly October to December)", "Conferences that need a team activity between sessions", "Teams that cannot leave the office for a full day"])),
+     ("Activities we run indoors", "<p>Each one is chosen for what you want the team to practise.</p>",
+      ul(["Problem-solving puzzles solved against the clock", "Communication games where only one person sees the instructions", "Build challenges with limited materials", "Team quizzes and icebreakers to mix departments", "Reflection and debrief led by a facilitator"])),
+     ("What we need from you", "<p>Very little. We bring the facilitators and the equipment.</p>",
+      ul(["A room with space to move, with tables that can be cleared", "A headcount and the time available", "Anything you want the session to focus on"]))],
+    [("Can you run team building in our own office?", "Yes. A boardroom or open-plan area with the furniture moved back is usually enough for groups of up to about 30; for more people we suggest a hotel hall."),
+     ("How long is an indoor session?", "From about two hours for a focused session to a full day with lunch at a venue."),
+     ("Is indoor team building cheaper?", "Usually, because there is no venue hire or transport if you use your own space. We quote it per session.")],
+    "indoor problem-solving challenge in a hotel hall", stype="Indoor team building"))
+
+add("/team-building/outdoor-adventure/", lambda here: sub_page(here, "Outdoor and adventure team building",
+    "Outdoor & Adventure Team Building in Kenya | Crown Masters",
+    "Outdoor team building in Kenya: obstacle courses, treasure hunts and relays at garden venues, plus rafting at Sagana and cycling at Hell's Gate.",
+    "Outdoor team building uses open lawns, lakes and rivers for obstacle courses, treasure hunts, relays and group challenges. Adventure options add white-water rafting at Sagana, cycling and walking at Hell's Gate near Naivasha, and forest walks at Ngare Ndare near Nanyuki.",
+    [("Outdoor challenges", "<p>Run in rotating teams, so everyone takes part and no one sits out for long.</p>",
+      ul(["Obstacle courses and relay races", "Treasure hunts across the venue grounds", "Tug of war and team sports", "Raft and structure building", "A group finale that needs every team to succeed"])),
+     ("Adventure activities", "<p>For teams that want more of a challenge. These are run at specialist venues with the venue's own guides and equipment.</p>",
+      ul([f'White-water rafting at Sagana (<a href="{link("/venues/muranga-sagana-nyeri-nyahururu/", here)}">see Sagana venues</a>)',
+          f'Cycling and walking at Hell\'s Gate National Park (<a href="{link("/venues/naivasha-nakuru-elementaita/", here)}">Naivasha venues</a>)',
+          f'Guided forest walks at Ngare Ndare (<a href="{link("/venues/nanyuki-isiolo/", here)}">Nanyuki venues</a>)',
+          "Camping for overnight programmes"])),
+     ("Safety and inclusion", "<p>Not everyone wants to raft. Every programme has options for different fitness levels.</p>",
+      ul(["Activities chosen to suit the group's fitness range", "Safety briefing before every activity", "Lower-intensity roles in every team challenge", "Ask us about guides, equipment and first aid at a specific venue"]))],
+    [("What is the best place for adventure team building near Nairobi?", "Sagana, about two hours north of Nairobi, is the best-known option for rafting and river activities. Naivasha and Hell's Gate are popular for cycling and walking."),
+     ("Do staff need to be fit for outdoor team building?", "No. Activities are chosen for the whole group, and every team challenge has roles that suit people who prefer to take it easy."),
+     ("What happens if it rains?", "We plan an indoor or covered fallback at every venue, and adjust the timings on the day.")],
+    "a team crossing an obstacle course on a lawn", stype="Outdoor team building"))
+
+add("/team-building/virtual-hybrid/", lambda here: sub_page(here, "Virtual and hybrid team building",
+    "Virtual & Hybrid Team Building | Crown Masters Adventures",
+    "Virtual and hybrid team building for remote and multi-office teams: facilitated online challenges, quizzes and icebreakers that include everyone.",
+    "Virtual team building runs facilitated challenges, quizzes and icebreakers over a video call, so remote staff and teams in different offices take part together. Hybrid sessions link a group in one room with colleagues joining online.",
+    [("Who it is for", "<p>Teams that rarely meet in one place.</p>", ul(["Remote and hybrid teams", "Companies with offices in several towns or countries", "Short sessions between quarterly meet-ups"])),
+     ("What a session looks like", "<p>About 60 to 90 minutes, led live by a facilitator.</p>", ul(["Warm-up and introductions", "Small-group challenges in breakout rooms", "A team quiz or puzzle round", "A short debrief"])),
+     ("What you need", "<p>Very little set-up.</p>", ul(["A video call link (Zoom, Google Meet or Teams)", "A camera and stable internet for each person", "For hybrid: a screen, camera and microphone in the room"]))],
+    [("How many people can join a virtual session?", "Group sizes are confirmed per session; breakout rooms keep each team small."),
+     ("Which platforms do you use?", "Zoom, Google Meet or Microsoft Teams, whichever your company already uses.")],
+    "a hybrid session with a room group and remote colleagues on screen",
+    flag="Virtual and hybrid sessions are proposed in the blueprint but are not offered on the current site. Publish this page only if the client runs them.", stype="Virtual team building"))
+
+add("/team-building/transport-logistics/", lambda here: sub_page(here, "Transport and logistics",
+    "Group Transport for Corporate Events | Crown Masters",
+    "Executive transport hire for team building and corporate events in Kenya: coaches and shuttles from your office to the venue and back, on a timed schedule.",
+    "We arrange executive transport for team building and corporate events, so your whole group travels together from the office to the venue and back on a schedule agreed in advance. Transport can be booked with an event or on its own.",
+    [("What we arrange", "<p>Vehicles sized to your headcount and route.</p>",
+      ul(["Executive vans and minibuses for smaller groups", "Coaches for large groups", "Pick-ups from one or several office locations", "Airport and SGR station transfers for coast and cross-border trips"])),
+     ("How it runs on the day", "<p>Everything is timed against the programme.</p>",
+      ul(["A departure plan shared with your team the week before", "One contact person for drivers and staff", "Return timings agreed before the event"]))],
+    [("Can we book transport without a team building event?", "Yes. Executive transport hire is available on its own for corporate trips and events."),
+     ("Do you arrange travel to the coast?", "Yes. For Mombasa and Diani we plan around flights or the SGR train, with road transfers at each end.")],
+    "a coach loading a team outside an office",
+    flag="The blueprint adds overland trucks and SGR coordination. Confirm which vehicle types the client provides before launch.", stype="Group transport"))
+
+# ---------------- venues directory
+def venues(here):
+    chips = '<button class="chip" aria-pressed="true" data-r="all">All regions</button>' + "".join(
+        f'<button class="chip" aria-pressed="false" data-r="{r["slug"]}">{E(r["short"])}</button>' for r in REGIONS)
+    settings = sorted({r["setting"] for r in REGIONS})
+    sopts = "".join(f'<option value="{E(s)}">{E(s)}</option>' for s in settings)
+    blocks = []
+    items = []
+    pos = 0
+    for r in REGIONS:
+        lis = []
+        for v in r["venues"]:
+            pos += 1
+            items.append({"@type": "ListItem", "position": pos, "item": {"@type": "Place", "name": v.rstrip("?"),
+                          "containedInPlace": {"@type": "Place", "name": r["name"]}}})
+            lis.append(venue_card(v, r))
+        blocks.append(f"""<section class="region" id="{r['slug']}" data-r="{r['slug']}" data-trip="{r['trip']}" data-set="{E(r['setting'])}" aria-labelledby="h-{r['slug']}">
+<div class="region-head"><h2 id="h-{r['slug']}">Team building venues in {E(r['name'])}</h2><a href="{link('/venues/' + r['slug'] + '/', here)}">Region guide</a></div>
+<div class="tags"><span class="tag">{r['count']} venues</span><span class="tag">{E(TRIP[r['trip']])}</span><span class="tag">{E(r['setting'])}</span><span class="tag">{E(r['travel'])}</span></div>
+<p>{E(r['intro'])}</p>
+<ul class="vgrid">{''.join(lis)}</ul></section>""")
+    faqs = [("Which are the best team building venues near Nairobi?", "For a one-day event, common choices within about two hours of Nairobi include Lukenya Getaway, Maanzoni Lodge, Brackenhurst Hotel, Fred's Ranch in Kitengela, and gardens such as Stedmark and Zen Gardens. The best one depends on group size, budget and the activities you want."),
+            ("Where should we go for a two-day team building retreat?", "Naivasha, Elementaita and Nanyuki are the usual choices for overnight retreats. They are a few hours from Nairobi and have resorts with space for group activities."),
+            ("Which venues are best for adventure activities?", "Sagana, at venues such as Rapids Camp, Savage Wilderness and Sagana Getaway, is known for white-water rafting and river activities."),
+            ("Can you book a venue that is not on this list?", "Yes. The list covers the venues we use most, and we can book others on request.")]
+    body = f"""
+{crumbs([("Home", "/"), ("Venues", here)], here)}
+<section class="page-head" style="padding-bottom:24px"><div class="wrap split">
+<div><h1>Team building venues in Kenya, Tanzania and Uganda</h1>
+<div class="answer"><p>We book and run team building events at {TOTAL} venues across {len(REGIONS)} regions, from day-trip gardens around Nairobi to lakeside resorts in Naivasha, adventure camps in Sagana, Mount Kenya lodges and beach hotels in Mombasa and Diani. Add venues to your quote and we'll check availability and prices for your dates.</p></div>
+<p class="small muted">Venue list last reviewed <time datetime="{UPDATED}">{UPDATED_TEXT}</time>.</p></div>
+{photo("a group on the lawn of a lakeside resort")}
+</div>
+<div class="wrap" style="margin-top:32px">{drive_chart(here)}</div></section>
+<div class="finder" id="regions"><div class="wrap">
+<div class="frow"><label class="sr" for="q">Search venues or towns</label><input id="q" type="search" placeholder="Search a venue or town, e.g. Naivasha" autocomplete="off">
+<label class="sr" for="trip">Trip type</label><select id="trip"><option value="all">Day trip or overnight</option><option value="day">Day trips</option><option value="overnight">Overnight stays</option></select>
+<label class="sr" for="set">Setting</label><select id="set"><option value="all">Any setting</option>{sopts}</select>
+<label class="sr" for="cap">Group size</label><select id="cap" disabled title="Capacity data is being collected for each venue"><option>Any group size (coming soon)</option></select></div>
+<div class="chips" role="group" aria-label="Filter by region">{chips}</div>
+<p class="result-count" id="rc" aria-live="polite"></p>
+</div></div>
+<div class="wrap">{''.join(blocks)}
+<p class="empty" id="empty">No venues match those filters. Clear the search, or <a href="{link('/contact-us/#quote', here)}">tell us what you need</a> and we'll suggest options, including venues not listed here.</p>
+<section class="tight">{confirm(f"Capacity, amenities and photos are not yet recorded for each venue. The group-size filter switches on once they are. A sample <a href='{link('/venues/profile-template/', here)}'>venue profile page</a> shows the layout each venue will get.")}</section>
+</div>
+{faq_block(faqs, "Choosing a venue")}
+{cta(here, "Not sure which venue fits?", "Send your group size, dates and budget. We come back with three venue options and a quote.")}
+<script>
+(function(){{var d=document,q=d.getElementById('q'),trip=d.getElementById('trip'),st=d.getElementById('set'),chips=[].slice.call(d.querySelectorAll('.chip')),regs=[].slice.call(d.querySelectorAll('.region')),empty=d.getElementById('empty'),rc=d.getElementById('rc'),cur='all';
+function run(){{var t=q.value.trim().toLowerCase(),n=0,shownR=0;
+regs.forEach(function(r){{var ok=(cur==='all'||r.dataset.r===cur)&&(trip.value==='all'||r.dataset.trip===trip.value||r.dataset.trip==='both')&&(st.value==='all'||r.dataset.set===st.value);
+var meta=(r.querySelector('h2').textContent+' '+r.querySelector('p').textContent).toLowerCase(),k=0;
+[].forEach.call(r.querySelectorAll('.vcard'),function(li){{var hit=!t||li.dataset.n.indexOf(t)>-1||meta.indexOf(t)>-1;li.hidden=!hit;if(hit)k++}});
+r.hidden=!(ok&&k>0);if(!r.hidden){{n+=k;shownR++}}}});
+empty.style.display=n?'none':'block';rc.textContent=n+' venue'+(n===1?'':'s')+' in '+shownR+' region'+(shownR===1?'':'s');}}
+q.addEventListener('input',run);trip.addEventListener('change',run);st.addEventListener('change',run);
+chips.forEach(function(c){{c.addEventListener('click',function(){{cur=c.dataset.r;chips.forEach(function(x){{x.setAttribute('aria-pressed',x===c)}});run();}})}});
+run();}})();
+</script>
+"""
+    schema = ld({"@type": "CollectionPage", "@id": DOMAIN + here + "#webpage", "url": DOMAIN + here,
+                 "name": "Team building venues in Kenya, Tanzania and Uganda", "dateModified": UPDATED, "about": {"@id": ORG_ID},
+                 "mainEntity": {"@type": "ItemList", "name": "Team building venues", "numberOfItems": TOTAL, "itemListElement": items}},
+                crumbs_ld([("Home", "/"), ("Venues", here)]), faq_ld(faqs, here))
+    return layout(here, f"{TOTAL} Team Building Venues in East Africa | Crown Masters",
+                  f"Compare {TOTAL} team building venues near Nairobi and in Naivasha, Sagana, Nanyuki, Mombasa, Diani, Tanzania and Uganda. Filter by region and trip type.",
+                  body, schema)
+add("/venues/", venues)
+
+def region_page(r):
+    def fn(here):
+        names = [v.rstrip("?") for v in r["venues"]]
+        others = [o for o in REGIONS if o is not r][:3]
+        faqs = [(f"How far is {r['short'] if r['short'] != 'Around Nairobi' else 'this region'} from Nairobi?",
+                 f"Typical travel time is {r['travel']}. Road times vary with traffic, so we plan departures to arrive before the first activity."),
+                (f"Is {r['name']} better for a day trip or an overnight stay?",
+                 {"day": "It is best for day trips; most venues are close enough to return the same evening.",
+                  "overnight": "It is best for overnight stays; the travel time makes a same-day return tiring.",
+                  "both": "It works for both. Closer venues suit day trips, and the resorts suit one or two nights."}[r["trip"]]),
+                (f"Which team building venues do you use in {r['name']}?",
+                 f"We work with {r['count']} venues here, including {', '.join(names[:5])}. See the full list on this page and add any of them to your quote."),
+                (f"What kind of team is {r['name']} best for?", r["best"])]
+        lis = "".join(venue_card(v, r) for v in r["venues"])
+        oth = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + o["slug"] + "/", here)}">{E(o["short"])}</a></h3><p>{E(o["setting"])}, {o["count"]} venues.</p><p class="meta">{E(o["travel"])}</p></div>' for o in others)
+        tbc = [v.rstrip("?") for v in r["venues"] if v.endswith("?")]
+        body = f"""
+{crumbs([("Home", "/"), ("Venues", "/venues/"), (r["short"], here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>Team building venues in {E(r['name'])}</h1>
+<div class="answer"><p>{B['name']} books and runs team building events at {r['count']} venues in {E(r['name'])}, {E(r['travel'])} from Nairobi. {E(r['intro'])}</p></div>
+<div class="tags"><span class="tag">{E(TRIP[r['trip']])}</span><span class="tag">{E(r['setting'])}</span><span class="tag">Towns: {E(', '.join(r['towns']))}</span></div>
+<div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_region">Get venue options</a><a class="btn btn-line" href="{link('/venues/', here)}">All regions</a></div></div>
+{photo(f"a team event at a venue in {r['short']}")}
+</div></section>
+<section style="padding-top:8px"><div class="wrap">
+<h2>{r['count']} venues in {E(r['name'])}</h2>
+<p class="muted">Add the venues you like to your quote. We check availability and prices for your dates.</p>
+{confirm("Names marked “name to confirm” need checking against the venue's official name: " + ", ".join(tbc) + ".") if tbc else ""}
+<ul class="vgrid" style="margin-top:16px">{lis}</ul>
+</div></section>
+<section class="band"><div class="wrap grid2">
+<div><h2>Best for</h2><p>{E(r['best'])}</p></div>
+<div><h2>Planning tips</h2><ul style="line-height:1.9;margin:0"><li>Typical travel: {E(r['travel'])}</li><li>{E(TRIP[r['trip']])}</li><li>Book six to eight weeks ahead for November, December and public holidays</li></ul></div>
+</div></section>
+{faq_block(faqs, f"Team building in {r['short']}: questions")}
+<section><div class="wrap"><h2>Other regions to compare</h2><div class="grid3" style="margin-top:20px">{oth}</div></div></section>
+{cta(here)}
+"""
+        schema = ld({"@type": "CollectionPage", "@id": DOMAIN + here + "#webpage", "url": DOMAIN + here,
+                     "name": f"Team building venues in {r['name']}", "dateModified": UPDATED, "about": {"@id": ORG_ID},
+                     "mainEntity": {"@type": "ItemList", "numberOfItems": r["count"], "itemListElement": [
+                         {"@type": "ListItem", "position": i + 1, "item": {"@type": "Place", "name": n, "address": {"@type": "PostalAddress", "addressRegion": r["name"]}}}
+                         for i, n in enumerate(names)]}},
+                    crumbs_ld([("Home", "/"), ("Venues", "/venues/"), (r["short"], here)]), faq_ld(faqs, here))
+        t0 = f"Team Building Venues in {r['name']}"
+        title = t0 + " | Crown Masters" if len(t0) <= 49 else (t0 if len(t0) <= 62 else f"Team Building Venues: {r['short']} | Crown Masters")
+        return layout(here, title,
+                      (lambda dsc: dsc if len(dsc) <= 160 else f"{r['count']} team building venues in {r['name']}: {r['setting'].lower()} for {TRIP[r['trip']].lower()}. Compare venues and request a quote.")(f"{r['count']} team building venues in {r['name']}, {r['travel']} from Nairobi. Compare venues and request a quote."),
+                      body, schema)
+    return fn
+for r in REGIONS:
+    add(f"/venues/{r['slug']}/", region_page(r))
+
+def profile_template(here):
+    body = f"""
+{crumbs([("Home", "/"), ("Venues", "/venues/"), ("Venue profile template", here)], here)}
+<section class="page-head"><div class="wrap">
+{confirm("This is a layout template, not a real venue. Each venue gets a page like this once its details and photos are collected. It is set to noindex.")}
+<h1>[Venue name], [Town]</h1>
+<div class="tags"><span class="tag">[Region]</span><span class="tag">[Setting]</span><span class="tag">[Day trip / overnight]</span></div>
+<div class="grid3" style="margin-top:24px">{photo("venue lawn or main activity area", "wide")}{photo("conference hall or indoor breakout room", "wide")}{photo("rooms or dining area", "wide")}</div>
+</div></section>
+<section style="padding-top:0"><div class="wrap grid2">
+<div><h2>About this venue</h2><p>[Two or three sentences: what the venue is like, what it is best for, and how far it is from Nairobi.]</p>
+<h3>Best for</h3><p>[e.g. one-day events for 50 to 150 people, outdoor challenges, year-end parties]</p></div>
+<div><h2>At a glance</h2><div class="tscroll"><table class="t"><tbody>
+<tr><th>Group capacity</th><td>[outdoor] · [conference seated] · [rooms]</td></tr>
+<tr><th>Activity spaces</th><td>[lawns, halls, pool, river, trails]</td></tr>
+<tr><th>Accommodation</th><td>[number of rooms, or day venue only]</td></tr>
+<tr><th>Travel from Nairobi</th><td>[time and route]</td></tr>
+<tr><th>Good to know</th><td>[parking, accessibility, park fees, booking lead time]</td></tr>
+</tbody></table></div>
+<div class="actions"><button type="button" class="add btn" data-v="[Venue name]" aria-pressed="false">Add to quote</button></div></div>
+</div></section>
+{cta(here)}
+"""
+    return layout(here, "Venue Profile Template | Crown Masters Adventures", "Layout template for individual venue pages.", body,
+                  ld(crumbs_ld([("Home", "/"), ("Venues", "/venues/"), ("Venue profile template", here)])), noindex=True)
+add("/venues/profile-template/", profile_template)
+
+# ---------------- corporate fitness
+FIT_FAQ = [
+    ("What is corporate fitness?", "Corporate fitness is a workout programme delivered at your workplace. Our trainers come to your premises, design sessions for your team and lead them, so staff exercise together without travelling to a gym after work."),
+    ("What workouts do you offer?", "Zumba, aerobics, calisthenics, high-intensity (insanity-style) workouts, interval training and circuit training, chosen to suit your team's fitness levels."),
+    ("What space do we need?", "An open area: a boardroom with the tables moved back, a parking space, a rooftop or a field near your office."),
+    ("Is it suitable for staff who don't exercise?", "Yes. Everyone does a fitness test first, and sessions are scaled so beginners and regular exercisers can train side by side. We also give nutrition guidance."),
+    ("How often are sessions held?", "Frequency is agreed with you; weekly and twice-weekly programmes are the most common choices for office teams."),
+]
+
+def fitness(here):
+    body = f"""
+{crumbs([("Home", "/"), ("Corporate fitness", here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>Corporate fitness and wellness programmes</h1>
+<div class="answer"><p>{B['name']} runs corporate fitness programmes at offices in Nairobi and beyond. Our trainers fitness-test every participant, design sessions for your team and lead them on site. All you need is an open space, such as a boardroom, parking area, rooftop or nearby field.</p></div>
+<div class="actions"><a class="btn btn-gold" href="#book" data-ev="cta_fit">Book a trial session</a><a class="btn btn-line" href="{link('/corporate-fitness/wellness-days/', here)}">Wellness days</a></div></div>
+{photo("staff in an office car park doing a group workout")}
+</div></section>
+
+<section class="band"><div class="wrap">
+<h2>Sessions we run</h2>
+<div class="grid3" style="margin-top:24px">
+<div class="card"><h3>Zumba</h3><p>Dance-based cardio that most beginners enjoy from the first session.</p></div>
+<div class="card"><h3>Aerobics</h3><p>Low-impact, steady cardio for all fitness levels.</p></div>
+<div class="card"><h3>Calisthenics</h3><p>Bodyweight strength training with no equipment needed.</p></div>
+<div class="card"><h3>High-intensity workouts</h3><p>Short, demanding insanity-style sessions for teams that want a challenge.</p></div>
+<div class="card"><h3>Interval training</h3><p>Alternating effort and rest, easy to scale for each person.</p></div>
+<div class="card"><h3>Circuit training</h3><p>Stations that mix strength and cardio, ideal for larger groups.</p></div>
+</div></div></section>
+
+<section><div class="wrap grid2">
+<div><h2>Why companies bring fitness to the office</h2><p>Most office staff sit for most of the day, and many cannot fit a gym in around work and Nairobi traffic. Over time that builds an inactive workforce and raises the risk of lifestyle diseases.</p>{photo("before and after a boardroom stretch session", "wide")}</div>
+<ul style="line-height:2;margin:0">
+<li>No commute to a gym: sessions happen at work</li><li>Colleagues train together and keep each other going</li>
+<li>A fitness test for every participant</li><li>Nutrition guidance alongside the workouts</li>
+<li>Programmes designed for your team's fitness levels</li><li>Sessions can be scheduled around shifts</li></ul>
+</div></section>
+
+<section class="band"><div class="wrap">
+<h2>How a programme runs</h2>
+<ol class="steps" style="margin-top:24px">
+<li><h3>Planning call</h3><p>Team size, location, preferred days and any health considerations.</p></li>
+<li><h3>Fitness tests</h3><p>A short test for each participant to set a starting point.</p></li>
+<li><h3>Your programme</h3><p>Session types and frequency agreed with you.</p></li>
+<li><h3>Sessions on site</h3><p>Our trainers lead every session at your premises.</p></li>
+</ol>
+{confirm("Add session frequency options, trainer names and qualifications, and one client result. None of these are on the current site.")}
+</div></section>
+
+<section id="book"><div class="wrap grid2">
+<div><h2>Book a trial session</h2><p>For HR, admin and wellness coordinators. Tell us about your team and we'll suggest a programme and a date for a trial.</p>
+<dl class="nap" style="margin-top:24px"><dt>Call</dt><dd><a href="tel:{B['phone']}">{B['phone_display']}</a></dd><dt>Email</dt><dd><a href="mailto:{B['email']}">{B['email']}</a></dd></dl></div>
+<form class="wizard" id="fitform" novalidate>
+<div class="fgrid2">
+<div><label for="f-name">Your name</label><input id="f-name" name="Name" required autocomplete="name"></div>
+<div><label for="f-co">Company</label><input id="f-co" name="Company" required autocomplete="organization"></div>
+<div><label for="f-em">Work email</label><input id="f-em" name="Email" type="email" required autocomplete="email"></div>
+<div><label for="f-ph">Phone</label><input id="f-ph" name="Phone" type="tel" autocomplete="tel"></div>
+<div><label for="f-n">Staff taking part</label><input id="f-n" name="Staff" type="number" min="1" inputmode="numeric"></div>
+<div><label for="f-loc">Office location</label><input id="f-loc" name="Location" placeholder="e.g. Westlands, Nairobi"></div>
+<div class="full"><label for="f-type">Session types of interest</label><select id="f-type" name="Sessions"><option>Not sure yet</option><option>Zumba</option><option>Aerobics</option><option>Calisthenics</option><option>High-intensity</option><option>Interval or circuit training</option><option>A mix</option></select></div>
+<div class="full"><label for="f-msg">Preferred days and anything else</label><textarea id="f-msg" name="Notes" rows="3"></textarea></div>
+</div>
+<p class="err" id="f-err" role="alert"></p>
+<div class="wnav"><button class="btn btn-gold" type="submit" data-ev="fit_submit">Send request</button></div>
+</form>
+</div></section>
+{faq_block(FIT_FAQ)}
+{cta(here, "Bring fitness to your office", "Tell us your team size and location and we'll plan a programme and a trial session.")}
+<script>
+(function(){{var f=document.getElementById('fitform');f.addEventListener('submit',function(e){{e.preventDefault();var bad=[].filter.call(f.querySelectorAll('[required]'),function(x){{return !x.checkValidity()}});
+if(bad.length){{document.getElementById('f-err').textContent='Please add your '+bad.map(function(x){{return x.name.toLowerCase()}}).join(', ')+'.';bad[0].focus();return}}
+var l=[].map.call(f.elements,function(x){{return x.name&&x.value?x.name+': '+x.value:null}}).filter(Boolean);
+location.href='mailto:{B['email']}?subject='+encodeURIComponent('Corporate fitness enquiry – '+f.Company.value)+'&body='+encodeURIComponent(l.join('\\n'));}});}})();
+</script>
+"""
+    schema = ld({**service_ld(here, "Corporate fitness programmes", "Workplace fitness and wellness",
+                              "On-site corporate fitness with fitness testing, nutrition guidance and trainer-led sessions."),
+                 "hasOfferCatalog": {"@type": "OfferCatalog", "name": "Session types", "itemListElement": [
+                     {"@type": "Offer", "itemOffered": {"@type": "Service", "name": n}} for n in
+                     ("Zumba", "Aerobics", "Calisthenics", "High-intensity workouts", "Interval training", "Circuit training")]}},
+                crumbs_ld([("Home", "/"), ("Corporate fitness", here)]), faq_ld(FIT_FAQ, here))
+    return layout(here, "Corporate Fitness Programmes in Nairobi | Crown Masters",
+                  "On-site corporate fitness in Nairobi: Zumba, aerobics, calisthenics, HIIT, circuit and interval training at your office, with fitness tests and nutrition guidance.",
+                  body, schema)
+add("/corporate-fitness/", fitness)
+
+def wellness(here):
+    faqs = [("What is a corporate wellness day?", "A wellness day is a single on-site event focused on staff health: group workouts, fitness tests and nutrition guidance, scheduled around the working day."),
+            ("Can a wellness day start a longer fitness programme?", "Yes. Many companies use a wellness day to introduce staff to the trainers before starting regular sessions.")]
+    body = f"""
+{crumbs([("Home", "/"), ("Corporate fitness", "/corporate-fitness/"), ("Wellness days", here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>Corporate wellness days</h1>
+{confirm("Wellness days and ergonomics talks are proposed in the blueprint. Confirm what the client delivers before publishing.")}
+<div class="answer"><p>A corporate wellness day brings health activities to your office for a day or half day: group workouts led by our trainers, fitness tests for each participant and nutrition guidance, arranged around your team's working hours.</p></div>
+<div class="actions"><a class="btn btn-gold" href="{link('/corporate-fitness/#book', here)}">Plan a wellness day</a></div></div>
+{photo("a wellness day station with staff taking a fitness test")}
+</div></section>
+<section class="band"><div class="wrap">
+<h2>What a wellness day can include</h2>
+<div class="grid3" style="margin-top:24px">
+<div class="card"><h3>Fitness tests</h3><p>A quick baseline for every participant.</p></div>
+<div class="card"><h3>Group workouts</h3><p>Short sessions staff can join between meetings.</p></div>
+<div class="card"><h3>Nutrition guidance</h3><p>Practical advice on eating well around a busy work day.</p></div>
+<div class="card"><h3>Desk stretches</h3><p>Simple routines staff can repeat at their desks.</p></div>
+<div class="card"><h3>Ergonomics talk <span class="tbc">to confirm</span></h3><p>Setting up a desk and chair to reduce strain.</p></div>
+<div class="card"><h3>Team challenge</h3><p>A friendly competition to end the day.</p></div>
+</div></div></section>
+{faq_block(faqs)}
+{cta(here, "Plan a wellness day", "Tell us your date, headcount and location.")}
+"""
+    schema = ld(service_ld(here, "Corporate wellness days", "Workplace wellness event", "On-site corporate wellness days with workouts, fitness tests and nutrition guidance."),
+                crumbs_ld([("Home", "/"), ("Corporate fitness", "/corporate-fitness/"), ("Wellness days", here)]), faq_ld(faqs, here))
+    return layout(here, "Corporate Wellness Days in Nairobi | Crown Masters Adventures",
+                  "On-site corporate wellness days: group workouts, fitness tests, nutrition guidance and desk stretches for your team, arranged around the working day.", body, schema)
+add("/corporate-fitness/wellness-days/", wellness)
+
+# ---------------- articles
+ARTICLES = [
+    ("/blog/plan-team-building-event-kenya/", "How to plan a corporate team building event in Kenya",
+     "A step-by-step plan for organisers: goals, budget, dates, venue, activities and logistics.", "plan"),
+    ("/blog/team-building-venues-near-nairobi/", "Team building near Nairobi: day trip or overnight?",
+     "How travel time, budget and goals decide between a one-day event and a retreat.", "near"),
+    ("/blog/team-building-budget-kenya/", "What goes into a team building budget in Kenya",
+     "Every cost line explained, so your quote holds no surprises.", "budget"),
+]
+
+def article(path, title, summary, key):
+    def fn(here):
+        if key == "plan":
+            toc = ["Start with the goal", "Fix headcount, budget and dates", "Choose a region by travel time", "Decide day trip or overnight", "Pick activities that fit everyone", "Plan transport and timings", "Tell staff what to expect", "Follow up afterwards"]
+            content = f"""
+<p>A good team building event is planned backwards from what you want the team to do differently afterwards. These eight steps take you from a vague brief to a confirmed booking.</p>
+<h2 id="s1">1. Start with the goal</h2><p>Write one sentence on why the event is happening. Common goals are helping a new team get to know each other, rebuilding communication after a hard quarter, or rewarding a strong year. The goal decides almost everything else: a reward trip needs a nice venue and light activities; a communication goal needs a skilled facilitator and a proper debrief.</p>
+<h2 id="s2">2. Fix headcount, budget and dates</h2><p>Get an approved budget and a headcount range before you contact venues. Give two or three possible dates. November and December fill up fast for year-end events, as do weekends around public holidays, so allow six to eight weeks for those periods.</p>
+<h2 id="s3">3. Choose a region by travel time</h2><p>Travel eats into the day. Venues around Nairobi are 30 minutes to two hours away; Naivasha and Sagana about two to three hours; Nanyuki three to four. See our <a href="{link('/venues/', here)}">venue directory</a> for typical times to each region.</p>
+<h2 id="s4">4. Decide day trip or overnight</h2><p>A day trip is simpler and cheaper. An overnight stay gives time for an evening together, which is often where relationships form. Read <a href="{link('/blog/team-building-venues-near-nairobi/', here)}">day trip or overnight</a> for the trade-offs.</p>
+<h2 id="s5">5. Pick activities that fit everyone</h2><p>Choose activities that every person can take part in, with lower-intensity roles for those who need them. Mix team challenges with at least one activity that needs the whole group. Leave 30 minutes for a debrief at the end.</p>
+<h2 id="s6">6. Plan transport and timings</h2><p>Book transport with the event so departures, arrival and return are timed together. Share the schedule with staff a week ahead, including the departure point and return time.</p>
+<h2 id="s7">7. Tell staff what to expect</h2><p>Send a short note: the date, what to wear, what to bring, the schedule, and any dietary or accessibility needs you need to know about. Anxiety about unknown activities is the main reason people stay away.</p>
+<h2 id="s8">8. Follow up afterwards</h2><p>Within a week, share photos and the two or three things the team agreed in the debrief. That is what turns a fun day into a change at work.</p>
+<p>Use our free <a href="{link('/planning-checklist/', here)}">planning checklist and budget planner</a> to track each step.</p>"""
+        elif key == "near":
+            toc = ["The short answer", "When a day trip is right", "When to stay overnight", "Regions compared"]
+            rows = "".join(f'<tr><td><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></td><td>{E(r["travel"])}</td><td>{E(TRIP[r["trip"]])}</td><td>{r["count"]}</td></tr>' for r in REGIONS[:6])
+            content = f"""
+<h2 id="s1">The short answer</h2><p>Stay within about two hours of Nairobi for a one-day event; go further, to Naivasha, Nanyuki or the coast, only if you stay at least one night. Long drives on a day trip leave little time for the activities.</p>
+<h2 id="s2">When a day trip is right</h2><ul><li>Budgets that cannot cover accommodation</li><li>Large groups, where rooms are hard to find</li><li>Staff with family commitments who cannot stay away</li><li>Goals that need a focused few hours, not a retreat</li></ul>
+<h2 id="s3">When to stay overnight</h2><ul><li>Leadership and strategy retreats that need two days of thinking time</li><li>Reward trips, where rest is part of the purpose</li><li>Teams from different offices meeting for the first time</li><li>Programmes that include an evening event</li></ul>
+<h2 id="s4">Regions compared</h2><div class="tscroll"><table class="t"><thead><tr><th>Region</th><th>Travel from Nairobi</th><th>Best for</th><th>Venues</th></tr></thead><tbody>{rows}</tbody></table></div>
+<p class="small muted">Travel times are approximate and depend on traffic.</p>"""
+        else:
+            toc = ["Venue", "Meals", "Accommodation", "Transport", "Facilitation and equipment", "Activity and park fees", "Contingency", "Questions to ask before you pay"]
+            content = f"""
+<p>Team building quotes in Kenya are usually priced per person, but they bundle several separate costs. Knowing each line helps you compare quotes fairly and spot what is missing.</p>
+<h2 id="s1">Venue</h2><p>Most venues charge a per-person day or conference package that includes the grounds or a hall, and sometimes meals. Check whether exclusive use of a space costs extra.</p>
+<h2 id="s2">Meals</h2><p>Morning tea, lunch and afternoon tea are standard for a day event. Confirm whether drinks and special diets are included.</p>
+<h2 id="s3">Accommodation</h2><p>For overnight trips, rooms are often priced per person sharing, full board. Single rooms cost more, so agree the sharing policy early.</p>
+<h2 id="s4">Transport</h2><p>Usually a fixed price per vehicle for the round trip, so the cost per person falls as more people share a coach.</p>
+<h2 id="s5">Facilitation and equipment</h2><p>Facilitators, activity materials and set-up. This is where providers differ most, so ask what the facilitation fee covers.</p>
+<h2 id="s6">Activity and park fees</h2><p>Some activities carry their own fees, such as rafting or entry to a national park like Hell's Gate. Check whether these are in the quote.</p>
+<h2 id="s7">Contingency</h2><p>Keep 5 to 10 percent aside for late additions, extra transport or a change in headcount.</p>
+<h2 id="s8">Questions to ask before you pay</h2><ul><li>What is included per person, line by line?</li><li>What deposit is needed, and when is the balance due?</li><li>What is the cancellation and headcount-change policy?</li><li>What happens if it rains?</li></ul>
+<p>Our <a href="{link('/planning-checklist/', here)}#planner">budget planner</a> adds these lines up for you.</p>"""
+        tochtml = "".join(f'<li><a href="#s{i + 1}">{E(t)}</a></li>' for i, t in enumerate(toc))
+        body = f"""
+{crumbs([("Home", "/"), ("Guides", "/blog/"), (title, here)], here)}
+<article class="wrap" style="padding:24px 16px 48px">
+<div class="prose">
+<h1 style="font-size:clamp(2rem,4.4vw,3rem)">{E(title)}</h1>
+<div class="byline"><span>By the {B['name']} team</span><span>Updated <time datetime="{UPDATED}">{UPDATED_TEXT}</time></span></div>
+<div class="answer"><p>{E(summary)}</p></div>
+<nav class="toc" aria-label="In this guide"><b>In this guide</b><ol>{tochtml}</ol></nav>
+{content}
+</div>
+</article>
+<section class="band tight"><div class="wrap grid2"><div><h2>Free planning checklist and budget planner</h2><p>Every step in one list, plus a planner that totals your costs per person. No sign-up needed.</p></div><div class="actions"><a class="btn btn-gold" href="{link('/planning-checklist/', here)}" data-ev="lead_checklist">Open the checklist</a></div></div></section>
+{cta(here)}
+"""
+        schema = ld({"@type": "Article", "@id": DOMAIN + here + "#article", "headline": title, "description": summary,
+                     "datePublished": UPDATED, "dateModified": UPDATED, "author": {"@id": ORG_ID}, "publisher": {"@id": ORG_ID},
+                     "mainEntityOfPage": DOMAIN + here, "inLanguage": "en-KE"},
+                    crumbs_ld([("Home", "/"), ("Guides", "/blog/"), (title, here)]))
+        return layout(here, title if len(title) > 48 else f"{title} | Crown Masters", summary + " A planning guide from Crown Masters Adventures, Nairobi.", body, schema, og_type="article")
+    return fn
+for p, t, s, k in ARTICLES:
+    add(p, article(p, t, s, k))
+
+def blog(here):
+    cards = "".join(f'<div class="card link">{photo("article image", "short")}<h3 style="margin-top:16px"><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(s)}</p><p class="meta">Updated {UPDATED_TEXT}</p></div>' for p, t, s, _ in ARTICLES)
+    body = f"""
+{crumbs([("Home", "/"), ("Guides", here)], here)}
+<section class="page-head"><div class="wrap">
+<h1>Team building planning guides</h1>
+<p class="lede">Practical guides for HR, admin and office managers who have been asked to organise the next team event.</p>
+<div class="grid3" style="margin-top:32px">{cards}</div>
+{confirm("Publish one new guide a month. Suggested next topics: icebreakers for new teams, team building in the rainy season, a Naivasha retreat programme, and case studies from real events.")}
+</div></section>
+{cta(here)}
+"""
+    schema = ld({"@type": "Blog", "@id": DOMAIN + here + "#blog", "url": DOMAIN + here, "name": "Team building planning guides",
+                 "publisher": {"@id": ORG_ID}, "blogPost": [{"@type": "BlogPosting", "headline": t, "url": DOMAIN + p} for p, t, _, _ in ARTICLES]},
+                crumbs_ld([("Home", "/"), ("Guides", here)]))
+    return layout(here, "Team Building Planning Guides | Crown Masters Adventures",
+                  "Guides for HR and office managers planning team building in Kenya: step-by-step planning, day trip or overnight, and budgeting.", body, schema)
+add("/blog/", blog)
+
+def checklist(here):
+    tasks = ["Write one sentence on the goal of the event", "Agree the budget and who approves it", "Confirm a headcount range",
+             "Choose two or three possible dates", "Pick a region by travel time", "Decide day trip or overnight",
+             "Shortlist venues and request quotes", "Agree the programme and activities", "Book transport and confirm timings",
+             "Collect dietary and accessibility needs", "Send staff the schedule and packing list", "Confirm final numbers with the venue",
+             "Share photos and debrief notes afterwards"]
+    lis = "".join(f'<li><input type="checkbox" id="c{i}"><label for="c{i}">{E(t)}</label></li>' for i, t in enumerate(tasks))
+    body = f"""
+{crumbs([("Home", "/"), ("Planning checklist", here)], here)}
+<section class="page-head"><div class="wrap">
+<h1>Team building planning checklist and budget planner</h1>
+<p class="lede">Tick off each step as you go and total your costs per person. Your ticks are saved in this browser. Print it to share with your manager.</p>
+<div class="actions noprint"><button class="btn btn-line" type="button" onclick="window.print()">Print or save as PDF</button></div>
+</div></section>
+<section style="padding-top:0"><div class="wrap grid2">
+<div><h2>Checklist</h2><ul class="check" id="checklist">{lis}</ul></div>
+<div id="planner"><h2>Budget planner</h2><p class="muted small">Enter the figures from your quotes in Kenya shillings. Nothing is sent anywhere.</p>
+<form class="planner" id="pl" oninput="calc()">
+<div class="fgrid2">
+<div><label for="p-n">People</label><input id="p-n" type="number" min="1" value="50" inputmode="numeric"></div>
+<div><label for="p-v">Venue package per person</label><input id="p-v" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-nights">Nights</label><input id="p-nights" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-room">Accommodation per person per night</label><input id="p-room" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-t">Transport, total</label><input id="p-t" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-f">Facilitation and equipment, total</label><input id="p-f" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-a">Activity or park fees per person</label><input id="p-a" type="number" min="0" value="0" inputmode="numeric"></div>
+<div><label for="p-c">Contingency %</label><input id="p-c" type="number" min="0" max="50" value="10" inputmode="numeric"></div>
+</div>
+<div class="ptotal" aria-live="polite"><div>Total<b id="p-total">KES 0</b></div><div>Per person<b id="p-pp">KES 0</b></div></div>
+</form></div>
+</div></section>
+{cta(here, "Want us to fill in the numbers?", "Send your headcount and dates and we'll quote each line.")}
+<script>
+function calc(){{var g=function(i){{return Math.max(0,parseFloat(document.getElementById(i).value)||0)}};var n=Math.max(1,g('p-n'));
+var sub=n*g('p-v')+n*g('p-nights')*g('p-room')+g('p-t')+g('p-f')+n*g('p-a');var tot=sub*(1+g('p-c')/100);
+var fmt=function(x){{return 'KES '+Math.round(x).toLocaleString('en-KE')}};document.getElementById('p-total').textContent=fmt(tot);document.getElementById('p-pp').textContent=fmt(tot/n);}}
+calc();
+(function(){{var K='cma_checklist',s;try{{s=JSON.parse(localStorage.getItem(K)||'{{}}')}}catch(e){{s={{}}}}
+[].forEach.call(document.querySelectorAll('#checklist input'),function(c){{c.checked=!!s[c.id];c.addEventListener('change',function(){{s[c.id]=c.checked;try{{localStorage.setItem(K,JSON.stringify(s))}}catch(e){{}}}})}});}})();
+</script>
+"""
+    schema = ld(page_ld(here, "Team building planning checklist and budget planner"), crumbs_ld([("Home", "/"), ("Planning checklist", here)]))
+    return layout(here, "Free Team Building Checklist & Budget Planner | Crown Masters",
+                  "Free team building planning checklist and budget planner: 13 steps from goal to debrief, and a calculator that totals your costs per person.", body, schema)
+add("/planning-checklist/", checklist)
+
+# ---------------- about
+def about(here):
+    body = f"""
+{crumbs([("Home", "/"), ("About", here)], here)}
+<section class="page-head"><div class="wrap split">
+<div><h1>About {B['name']}</h1>
+<div class="answer"><p>{B['name']} is a corporate team building company based at {E(B['street'])}, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, run corporate fitness programmes, and arrange group transport, getaways and expeditions.</p></div>
+{confirm("Add the year the company started, the founder's name and story, and the size of the team. Google and AI assistants weigh who is behind a business when deciding whom to recommend.")}</div>
+{photo("the Crown Masters team together, smiling, at a venue")}
+</div></section>
+<section class="band"><div class="wrap grid3">
+<div><h2>What we believe</h2><p>A team building day should change something at work on Monday. That is why every programme starts with a goal and ends with a debrief.</p></div>
+<div><h2>How we work</h2><p>One contact person from the first call to the last coach home. Written programmes and line-by-line quotes, so there are no surprises.</p></div>
+<div><h2>Where we work</h2><p>From our Parklands office we run events at {TOTAL} venues in {len(REGIONS)} regions, and at clients' own offices.</p></div>
+</div></section>
+<section><div class="wrap">
+<h2>Our team</h2>
+<div class="grid4" style="margin-top:24px">{''.join(f'<div class="card">{photo("team member portrait", "tall")}<h3 style="margin-top:12px">[Name]</h3><p class="muted">[Role] · [one line of experience]</p></div>' for _ in range(4))}</div>
+</div></section>
+{cta(here)}
+"""
+    schema = ld({"@type": "AboutPage", "@id": DOMAIN + here + "#webpage", "url": DOMAIN + here, "name": f"About {B['name']}", "about": {"@id": ORG_ID}},
+                crumbs_ld([("Home", "/"), ("About", here)]))
+    return layout(here, "About Us | Crown Masters Adventures, Nairobi",
+                  "Crown Masters Adventures is a Nairobi team building company in Parklands: team building events, venue booking, corporate fitness and group transport.", body, schema)
+add("/about-us/", about)
+
+# ---------------- contact / quote engine
+def contact(here):
+    regs = "".join(f'<option>{E(r["name"])}</option>' for r in REGIONS)
+    budgets = ["Not sure yet", "Under KES 3,000", "KES 3,000 to 6,000", "KES 6,000 to 10,000", "KES 10,000 to 20,000", "Over KES 20,000"]
+    bopts = "".join(f"<option>{E(b)}</option>" for b in budgets)
+    maps_q = "Park+Place,+2nd+Avenue,+Parklands,+Nairobi"
+    body = f"""
+{crumbs([("Home", "/"), ("Contact", here)], here)}
+<section class="page-head" style="padding-bottom:24px"><div class="wrap">
+<h1>Request a team building quote</h1>
+<p class="lede">Four short steps. We usually need your group size, dates and a budget range to send venue options and a price.</p>
+</div></section>
+<section style="padding-top:0"><div class="wrap split" style="align-items:start">
+<form class="wizard" id="quote" novalidate>
+<ol class="progress" aria-label="Quote steps"><li class="on">1. You</li><li>2. Event</li><li>3. Place</li><li>4. Budget</li></ol>
+
+<fieldset class="wstep" data-step="0" style="border:0;padding:0;margin:0"><legend class="sr">About you</legend>
+<h2 style="font-size:1.4rem">About you</h2>
+<div class="fgrid2">
+<div><label for="q-name">Your name</label><input id="q-name" name="Name" required autocomplete="name"></div>
+<div><label for="q-co">Company</label><input id="q-co" name="Company" required autocomplete="organization"></div>
+<div><label for="q-em">Work email</label><input id="q-em" name="Email" type="email" required autocomplete="email"></div>
+<div><label for="q-ph">Phone or WhatsApp</label><input id="q-ph" name="Phone" type="tel" required autocomplete="tel"></div>
+</div></fieldset>
+
+<fieldset class="wstep" data-step="1" hidden style="border:0;padding:0;margin:0"><legend class="sr">Your event</legend>
+<h2 style="font-size:1.4rem">Your event</h2>
+<div class="fgrid2">
+<div class="full"><label for="q-svc">What do you need?</label><select id="q-svc" name="Service"><option>Team building event</option><option>Venue booking only</option><option>Corporate fitness</option><option>Transport hire</option><option>Getaway or expedition</option></select></div>
+<div><label for="q-n">Group size</label><input id="q-n" name="Group size" type="number" min="1" required inputmode="numeric"></div>
+<div><label for="q-d">Preferred dates</label><input id="q-d" name="Dates" required placeholder="e.g. 5 or 12 December"></div>
+<div class="full"><span style="display:block;font-weight:700;margin-bottom:6px">Duration</span><div class="radio-cards" role="radiogroup">
+<label><input type="radio" name="Duration" value="Half day">Half day<small>At your office or nearby</small></label>
+<label><input type="radio" name="Duration" value="Day trip" checked>Day trip<small>Back the same evening</small></label>
+<label><input type="radio" name="Duration" value="Overnight">Overnight<small>One night or more</small></label></div></div>
+</div></fieldset>
+
+<fieldset class="wstep" data-step="2" hidden style="border:0;padding:0;margin:0"><legend class="sr">Where</legend>
+<h2 style="font-size:1.4rem">Where</h2>
+<label for="q-reg">Region</label><select id="q-reg" name="Region"><option>Not sure, please suggest</option><option>At our office</option>{regs}</select>
+<div style="margin-top:16px"><span style="display:block;font-weight:700">Venues added to your quote</span><div class="picked" id="picked"></div>
+<p class="hint" id="picked-hint">None yet. You can <a href="{link('/venues/', here)}">browse venues</a> and add any you like.</p></div>
+<div style="margin-top:12px"><label for="q-ven">Other venues you have in mind</label><input id="q-ven" name="Other venues"></div>
+</fieldset>
+
+<fieldset class="wstep" data-step="3" hidden style="border:0;padding:0;margin:0"><legend class="sr">Budget and notes</legend>
+<h2 style="font-size:1.4rem">Budget and anything else</h2>
+<label for="q-b">Budget per person</label><select id="q-b" name="Budget per person">{bopts}</select>
+<p class="hint">A rough range helps us shortlist venues you can afford. Try the <a href="{link('/planning-checklist/#planner', here)}">budget planner</a>.</p>
+<div style="margin-top:12px"><label for="q-m">Goals, activities or questions</label><textarea id="q-m" name="Notes" rows="4"></textarea></div>
+<h3 style="margin-top:20px">Your request</h3><pre class="review" id="review"></pre>
+<p class="hint">By sending, you agree we may contact you about this request. See our <a href="{link('/privacy-policy/', here)}">privacy policy</a>.</p>
+</fieldset>
+
+<p class="err" id="q-err" role="alert"></p>
+<div class="wnav"><button type="button" class="btn btn-line" id="back" hidden>Back</button><span></span>
+<button type="button" class="btn btn-gold" id="next">Continue</button>
+<span id="send" hidden style="gap:10px;flex-wrap:wrap"><button type="button" class="btn btn-gold" id="send-email" data-ev="quote_email">Send by email</button><button type="button" class="btn btn-line" id="send-wa" data-ev="quote_whatsapp">Send on WhatsApp</button></span></div>
+<p class="hint">Demo: sending opens your email app or WhatsApp with the request filled in. In production the form posts to the site's form handler and shows the thank-you page.</p>
+</form>
+
+<aside>
+<h2>Contact details</h2>
+<dl class="nap">
+<dt>Office</dt><dd>{E(B['street'])}, {B['city']}</dd>
+<dt>Phone</dt><dd><a href="tel:{B['phone']}" data-ev="tel_contact">{B['phone_display']}</a></dd>
+<dt>WhatsApp</dt><dd><a href="{B['whatsapp']}" rel="noopener" data-ev="whatsapp_contact">{B['phone_display']}</a></dd>
+<dt>Email</dt><dd><a href="mailto:{B['email']}" data-ev="email_contact">{B['email']}</a></dd>
+<dt>Hours</dt><dd>{E(B['hours_display'])}</dd>
+</dl>
+<iframe class="map" style="margin-top:24px" title="Map showing the Crown Masters Adventures office in Parklands, Nairobi" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q={maps_q}&output=embed"></iframe>
+{confirm("Confirm the exact office pin and opening hours, then claim the Google Business Profile so the map and reviews match this page.")}
+</aside>
+</div></section>
+<script>
+(function(){{var f=document.getElementById('quote'),steps=[].slice.call(f.querySelectorAll('.wstep')),prog=[].slice.call(f.querySelectorAll('.progress li')),cur=0,
+next=document.getElementById('next'),back=document.getElementById('back'),send=document.getElementById('send'),err=document.getElementById('q-err');
+function picked(){{var v=window.CMA.get(),box=document.getElementById('picked');box.innerHTML='';v.forEach(function(n){{var s=document.createElement('span');s.textContent=n;box.appendChild(s)}});document.getElementById('picked-hint').style.display=v.length?'none':'block';}}
+function summary(){{var l=[];[].forEach.call(f.elements,function(x){{if(!x.name||!x.value)return;if(x.type==='radio'&&!x.checked)return;l.push(x.name+': '+x.value)}});var v=window.CMA.get();if(v.length)l.push('Shortlisted venues: '+v.join(', '));return l.join('\\n');}}
+function show(i){{cur=i;steps.forEach(function(s,j){{s.hidden=j!==i}});prog.forEach(function(p,j){{p.className=j<i?'done':(j===i?'on':'')}});
+back.hidden=i===0;var last=i===steps.length-1;next.hidden=last;send.hidden=!last;send.style.display=last?'flex':'';err.textContent='';
+if(last)document.getElementById('review').textContent=summary();if(i===2)picked();var h=steps[i].querySelector('h2');if(h){{h.tabIndex=-1;h.focus()}}
+window.dataLayer.push({{event:'quote_step',step:i+1}});}}
+function valid(){{var bad=[].filter.call(steps[cur].querySelectorAll('[required]'),function(x){{return !x.checkValidity()}});
+if(bad.length){{err.textContent='Please check: '+bad.map(function(x){{return x.name.toLowerCase()}}).join(', ')+'.';bad[0].focus();return false}}return true}}
+next.addEventListener('click',function(){{if(valid())show(cur+1)}});back.addEventListener('click',function(){{show(cur-1)}});
+document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());}});
+document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener');}});
+document.addEventListener('shortlist',picked);show(0);
+var h1=document.querySelector('h1');if(h1)h1.focus&&false;}})();
+</script>
+"""
+    schema = ld({"@type": "ContactPage", "@id": DOMAIN + here + "#webpage", "url": DOMAIN + here, "name": f"Contact {B['name']}", "about": {"@id": ORG_ID}},
+                crumbs_ld([("Home", "/"), ("Contact", here)]))
+    return layout(here, "Contact Us & Request a Quote | Crown Masters Adventures",
+                  f"Request a team building, venue or fitness quote in four steps, or call or WhatsApp {B['phone_display']}. Office in Parklands, Nairobi.",
+                  body, schema)
+add("/contact-us/", contact)
+
+def thanks(here):
+    body = f"""<section><div class="wrap narrow"><h1>Thank you, your request is in</h1><p class="lede">We'll reply with venue options and a quote. If it's urgent, call or WhatsApp <a href="tel:{B['phone']}">{B['phone_display']}</a>.</p>
+<h2>While you wait</h2><ul><li><a href="{link('/planning-checklist/', here)}">Use the planning checklist</a></li><li><a href="{link('/blog/', here)}">Read our planning guides</a></li><li><a href="{link('/venues/', here)}">Browse more venues</a></li></ul></div></section>"""
+    return layout(here, "Thank You | Crown Masters Adventures", "Your quote request has been received.", body, ld(), noindex=True)
+add("/contact-us/thank-you/", thanks)
+
+def privacy(here):
+    body = f"""
+{crumbs([("Home", "/"), ("Privacy policy", here)], here)}
+<section class="page-head"><div class="wrap prose">
+<h1>Privacy policy</h1>
+{confirm("Draft for review by the client's lawyer. Kenya's Data Protection Act, 2019 applies to personal data collected through this site.")}
+<p class="muted">Last updated <time datetime="{UPDATED}">{UPDATED_TEXT}</time></p>
+<h2>Who we are</h2><p>{B['name']}, {E(B['street'])}, Nairobi, Kenya. Contact: <a href="mailto:{B['email']}">{B['email']}</a>.</p>
+<h2>What we collect</h2><p>When you request a quote or book a session, we collect your name, company, email, phone number and the event details you give us. If you message us on WhatsApp, we receive the details you send there.</p>
+<h2>How we use it</h2><p>Only to reply to your request, prepare quotes and deliver the services you book. We do not sell your data.</p>
+<h2>Who we share it with</h2><p>Venues and transport providers, only as needed to check availability and make your booking.</p>
+<h2>How long we keep it</h2><p>[Retention period to confirm, for example 24 months after your last enquiry.]</p>
+<h2>Your rights</h2><p>You can ask to see, correct or delete your data by emailing us.</p>
+<h2>Cookies and analytics</h2><p>[List the analytics tool used, for example Google Analytics 4, once it is set up.] This site saves your venue shortlist and checklist ticks in your own browser only.</p>
+</div></section>"""
+    return layout(here, "Privacy Policy | Crown Masters Adventures", "How Crown Masters Adventures collects and uses personal data from enquiries and bookings.", body,
+                  ld(crumbs_ld([("Home", "/"), ("Privacy policy", here)])))
+add("/privacy-policy/", privacy)
+
+def notfound(here):
+    body = f"""<section><div class="wrap narrow"><h1>We couldn't find that page</h1><p class="lede">It may have moved when we rebuilt the site. These links should get you there:</p>
+<ul style="line-height:2"><li><a href="{link('/team-building/', here)}">Team building</a></li><li><a href="{link('/venues/', here)}">All {TOTAL} venues</a></li><li><a href="{link('/corporate-fitness/', here)}">Corporate fitness</a></li><li><a href="{link('/contact-us/#quote', here)}">Request a quote</a></li></ul></div></section>"""
+    return layout(here, "Page Not Found | Crown Masters Adventures", "Page not found.", body, ld(), noindex=True)
+add("/404.html", notfound)
+
+# ================================================================== extras
+def extras():
+    idx = [p for p, _ in pages if p not in ("/404.html", "/contact-us/thank-you/", "/venues/profile-template/")]
+    sm = "".join(f"<url><loc>{DOMAIN}{p}</loc><lastmod>{UPDATED}</lastmod></url>" for p in idx)
+    files = {
+        "sitemap.xml": f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{sm}</urlset>\n',
+        "robots.txt": f"""# Crown Masters Adventures
+User-agent: *
+Allow: /
+Disallow: /contact-us/thank-you/
+
+# Search and AI answer engines are welcome, so the business can be found and cited
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: {DOMAIN}/sitemap.xml
+""",
+        "_redirects": "\n".join([
+            "# 301 redirects for Cloudflare Pages / Netlify. Keep legacy URLs alive.",
+            "/home/            /                     301",
+            "/teambuilding/    /team-building/       301",
+            "/corporatefitness/ /corporate-fitness/  301",
+            "/contact/         /contact-us/          301",
+            "/newsite/*        /:splat               301",
+            "/wp-content/uploads/2022/03/location-1024x683.jpg /assets/og-default.jpg 301",
+            "/category/*       /blog/                301",
+            "/feed/            /blog/                301",
+            "", ]),
+        "assets/favicon.svg": LOGO_SVG.replace('width="36" height="36" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
+        "assets/logo.svg": LOGO_SVG.replace('width="36" height="36" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
+    }
+    reg = "\n".join(f"- [{r['name']}]({DOMAIN}/venues/{r['slug']}/): {r['count']} venues, {r['setting'].lower()}, {r['travel']} from Nairobi. Best for: {r['best']}" for r in REGIONS)
+    files["llms.txt"] = f"""# {B['name']}
+
+> Corporate team building company based in Parklands, Nairobi, Kenya. Plans and facilitates team building events, books {TOTAL} team building venues across Kenya, Tanzania and Uganda, runs on-site corporate fitness programmes, and arranges group transport.
+
+## Contact
+- Office: {B['street']}, {B['city']}, Kenya
+- Phone and WhatsApp: {B['phone_display']}
+- Email: {B['email']}
+- Quote form: {DOMAIN}/contact-us/
+
+## Services
+- [Corporate team building]({DOMAIN}/team-building/): facilitated events for teams of all sizes, with venue, transport and meals arranged
+- [Indoor team building]({DOMAIN}/team-building/indoor/): problem-solving and communication challenges in a hall or boardroom
+- [Outdoor and adventure]({DOMAIN}/team-building/outdoor-adventure/): obstacle courses, treasure hunts, rafting at Sagana, cycling at Hell's Gate
+- [Transport and logistics]({DOMAIN}/team-building/transport-logistics/): executive transport hire for groups
+- [Corporate fitness]({DOMAIN}/corporate-fitness/): Zumba, aerobics, calisthenics, HIIT, interval and circuit training at clients' offices, with fitness tests and nutrition guidance
+
+## Venue regions
+{reg}
+
+## Guides
+""" + "\n".join(f"- [{t}]({DOMAIN}{p}): {s}" for p, t, s, _ in ARTICLES) + "\n"
+    files["README.md"] = f"""# Crown Masters Adventures — website demo v2
+
+Static site generated from `data.py` by `build.py` ({len(pages)} pages).
+
+- Open `index.html` in a browser to review the demo (links work offline).
+- `python3 build.py --production` writes clean URLs (`/venues/`) for deployment.
+- Edit venues, regions and contact details in `data.py`, then rebuild.
+- Items marked "to confirm" (yellow notes) need client sign-off before launch.
+- `_redirects` holds the 301 map for Cloudflare Pages or Netlify.
+"""
+    return files
+
+# ================================================================== write
+if os.path.exists(OUT):
+    shutil.rmtree(OUT)
+for path, fn in pages:
+    fp = os.path.join(OUT, file_of(path))
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    with open(fp, "w") as fh:
+        fh.write(fn(path))
+for name, txt in extras().items():
+    fp = os.path.join(OUT, name)
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    with open(fp, "w") as fh:
+        fh.write(txt)
+print(f"{len(pages)} pages, {TOTAL} venues, {len(REGIONS)} regions -> {OUT}{' (production)' if PROD else ''}")

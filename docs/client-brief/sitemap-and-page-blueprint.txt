@@ -1,0 +1,114 @@
+SECTION B: Site Structure & Sitemap Architecture
+Plaintext
+Crown Masters Adventures (Root)
+│
+├── 1. Homepage (/)
+├── 2. Team Building (/team-building/)
+│     ├── Indoor Team Building
+│     ├── Outdoor & Adventure Team Building
+│     ├── Virtual & Hybrid Team Building
+│     └── Executive Transport & Logistics
+│
+├── 3. Venues (/venues/)
+│     ├── Region 1: Naivasha & Rift Valley
+│     ├── Region 2: Nairobi & Environs
+│     ├── Region 3: Mombasa & Coast
+│     └── [Filtered Dynamic Venue Pages]
+│
+├── 4. Corporate Fitness (/corporate-fitness/)
+│     ├── Workplace Fitness Programs (Zumba, HIIT, Aerobics)
+│     └── Wellness Days & Ergonomics
+│
+├── 5. Blog / Resources (/blog/)
+│     └── Guides on Corporate Culture, Icebreakers, Event Planning
+│
+└── 6. Contact Us (/contact-us/)
+SECTION C: Page-by-Page Feature & Content Blueprint
+1. Homepage (/)
+Hero Section: High-impact background video or professional carousel showing real Kenyan corporate teams engaged in vibrant team building. Bold value-proposition headline: "Transform Your Workforce with Kenya’s Premier Team Building & Corporate Events Partner."
+
+Primary CTAs: Prominent sticky buttons for "Request a Custom Quote" and "Instant WhatsApp Chat".
+
+Social Proof / Trust Bar: Client logo marquee (placeholder for corporate clients you’ve served), alongside a ticker of total events hosted and participant satisfaction ratings.
+
+Core Offerings Grid: Quick cards leading to Team Building, Venues, Corporate Fitness, and Transport Hire with engaging imagery.
+
+Featured Testimonial Carousel: Real success stories from corporate HR leaders.
+
+2. Team Building Page (/team-building/)
+Direct AI Answer Paragraph (Top of page): A concise, 50-word summary answering "What corporate team building services does Crown Masters Adventures offer in Kenya?" designed to be scraped by AI search engines.
+
+Detailed Service Breakdown: Clear descriptions of indoor games, outdoor obstacle courses, icebreakers, leadership workshops, and executive transport solutions (shuttles, overland trucks, SGR coordination).
+
+Package Customization Matrix: Interactive tabs showing how packages scale from small teams (4 pax) to massive corporate retreats (1,000+ pax).
+
+3. Venues Directory (/venues/)
+Interactive Filtering System: A clean UI allowing HR managers to filter verified venues by Region (Naivasha, Naivasha/Rift Valley, Maasai Mara, Diani, Mount Kenya, Nairobi, etc.), Capacity, and Activity Type (Team building lawns, conference halls, indoor breakout rooms).
+
+Cleaned Database: Error-free naming conventions (fixing past duplicates and typos like “Cool Breeze Gardens” and “Serena Kigo”), complete with high-res image galleries, amenities lists, and capacity specs.
+
+4. Corporate Fitness Page (/corporate-fitness/)
+Target Audience Focus: Addressing sedentary corporate lifestyles and prevention of lifestyle diseases.
+
+Program Options: On-site boardroom stretches, parking lot or rooftop HIIT, Zumba, aerobics, and structured staff wellness routines.
+
+Booking CTA: Quick booking form specifically tailored for wellness coordinators.
+
+5. Contact Us & Quote Engine (/contact-us/)
+Multi-Step Dynamic Quote Form: Instead of a generic contact box, use an intelligent form that captures:
+
+Company Name & Contact Person
+
+Estimated Group Size
+
+Preferred Dates & Duration (Day trip vs. Overnight getaway)
+
+Target Region / Venue Preference
+
+Estimated Budget Range
+
+Unified NAP Details: Clearly display the verified physical location (Park Place Building, 2nd Parklands Avenue, Nairobi), uniform corporate email address (teambuilding@crownmastersadventures.co.ke), direct phone numbers (+254 706 494806), and operating hours (Monday–Saturday).
+
+Embedded Google Map: Fully interactive map pointing directly to your offices.
+
+SECTION D: Technical SEO, AEO & Integration Checklist
+URL Preservation (Crucial): Maintain exact legacy URL slugs (/venues/, /corporate-fitness/, /contact-us/) via 301 redirects if moving platforms, ensuring zero loss of existing Google authority or rankings.
+
+Advanced Schema Markup (JSON-LD):
+
+Embed LocalBusiness schema on the homepage and contact page.
+
+Embed FAQPage schema on pages with frequently asked questions.
+
+Embed Service schema for Team Building and Corporate Fitness offerings.
+
+Embed BreadcrumbList schema across all subpages.
+
+AI Crawlers & Machine Readability:
+
+Create a clean robots.txt allowing bots from OpenAI, Google, Anthropic, and Perplexity.
+
+Create an llms.txt file in the root directory summarizing your company background, services, and contact data in clean Markdown text for LLMs.
+
+Speed Optimization & Core Web Vitals:
+
+Compress all images into next-gen formats (.webp).
+
+Eliminate render-blocking scripts to ensure mobile page loads under 2 seconds.
+
+Conversion Rate Optimization (CRO):
+
+Implement a floating WhatsApp widget accessible on every single page.
+
+Add clear exit-intent or scroll-triggered lead capture forms offering a "Free Team Building Checklist & Budget Calculator PDF".
+
+Next Steps for Your Project
+To progress from this blueprint to the production-ready build, we need to finalize three key assets:
+
+The Official Email & Contact Line: Confirm whether teambuilding@crownmastersadventures.co.ke and +254 706 494806 are your definitive primary channels.
+
+Real Content Assets: Real corporate client logos, true client testimonials/reviews, and actual photography from past events to replace the placeholder boxes.
+
+Venue Verification: Review the cleaned list of 123 venues to sign off on regional categorizations.
+
+Once you have these details ready, we can lock down the wireframes or code structure for version two!
