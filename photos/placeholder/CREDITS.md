@@ -14,3 +14,6 @@ All come from Wikimedia Commons, which hosts freely licensed media (Creative Com
 | `facilitator-briefing-a-group-before-an-activ.jpg` | Team Building Activity with SupplyHouse.jpg | https://commons.wikimedia.org/wiki/File:Team_Building_Activity_with_SupplyHouse.jpg |
 | `venue-lawn-or-main-activity-area.jpg` | Mount Kenya Sarfari Club.jpg | https://commons.wikimedia.org/wiki/File:Mount_Kenya_Sarfari_Club.jpg |
 | `a-client-team-mid-activity-outdoors-faces-vi.jpg` | Teambuilding II.JPG | https://commons.wikimedia.org/wiki/File:Teambuilding_II.JPG |
+| `staff-in-an-office-car-park-doing-a-group-wo.jpg` | Exercices d'aérobic.jpg | https://commons.wikimedia.org/wiki/File:Exercices_d%27a%C3%A9robic.jpg |
+| `conference-hall-or-indoor-breakout-room.jpg` | Celtic Club WA - conference room.jpg | https://commons.wikimedia.org/wiki/File:Celtic_Club_WA_-_conference_room.jpg |
+| `rooms-or-dining-area.jpg` | Diani Beach 2013 - panoramio (19).jpg | https://commons.wikimedia.org/wiki/File:Diani_Beach_2013_-_panoramio_%2819%29.jpg |
