@@ -23,9 +23,19 @@ python3 build.py --production  # clean URLs for deployment (what is committed in
 python3 build.py --theme=emerald  # preview another palette: navy (default), emerald, savanna
 ```
 
-Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces, body text Source Sans 3.
+Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces (soft cut), body text Plus Jakarta Sans.
 
 Edit content in `data.py` (venues, regions, phone, email, hours, geo, founding year), then rebuild. Setting `opening_hours`, `geo` and `founded` switches them on in the LocalBusiness schema automatically.
+
+## Photos
+
+Photo slots fill themselves from the `photos/` folder; see `photos/README.md` for the file name each slot expects. Images in `photos/placeholder/` are shown with a "PLACEHOLDER" watermark.
+
+## Security
+
+- Every page carries a Content Security Policy that only runs the page's own scripts (matched by SHA-256 hash; no `unsafe-inline` for scripts, no inline event handlers).
+- `site/_headers` adds HSTS, `frame-ancestors 'none'`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and cross-origin isolation headers on Cloudflare Pages or Netlify. GitHub Pages ignores this file, so only the in-page policy applies there.
+- The site is static: no database, logins or server code. The quote form opens the visitor's own email or WhatsApp.
 
 ## Deploy
 

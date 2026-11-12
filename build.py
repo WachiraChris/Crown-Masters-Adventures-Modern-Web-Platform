@@ -5,7 +5,7 @@
   python3 build.py --production  clean URLs (/venues/) for deployment
 Output goes to ./site
 """
-import html, json, os, sys, shutil
+import base64, hashlib, html, json, os, re, sys, shutil
 from data import DOMAIN, UPDATED, UPDATED_TEXT, BUSINESS as B, REGIONS, CORRECTIONS
 
 PROD = "--production" in sys.argv
@@ -109,10 +109,11 @@ ACCENT = THEMES[THEME]["light"].split()[_T.index("gold")]
 CSS = (":root{" + _LIGHT + "}\n@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){" + _DARK + "}}\n:root[data-theme=\"dark\"]{" + _DARK + "}\n") + r"""
 [hidden]{display:none!important}*{box-sizing:border-box}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
-body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.65 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.7 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-optical-sizing:auto;line-height:1.14;letter-spacing:-.015em;margin:0 0 .5em;text-wrap:balance}
 h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.25rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
-.eyebrow{display:flex;align-items:center;gap:12px;font:700 .78rem/1.3 "Source Sans 3",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 18px}.eyebrow::before{content:"";width:32px;height:1px;background:currentColor;flex:none}
+h1 em{font-style:italic;font-weight:400;color:var(--gold-ink)}.hero h1 em{color:var(--gold-on-deep)}
+.eyebrow{display:flex;align-items:center;gap:12px;font:700 .74rem/1.3 "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 18px}.eyebrow::before{content:"";width:32px;height:1px;background:currentColor;flex:none}
 p{margin:0 0 1em;max-width:68ch}ul,ol{max-width:68ch}
 a{color:var(--grass);overflow-wrap:anywhere;text-underline-offset:.18em;text-decoration-thickness:1px}a:hover{color:var(--ink)}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -128,10 +129,10 @@ header.site :focus-visible,footer :focus-visible,.hero :focus-visible,.cta :focu
 .bar{display:flex;align-items:center;gap:12px;min-height:var(--hdr)}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--on-deep);font:600 1.18rem/1.1 "Fraunces",Georgia,serif;letter-spacing:.005em;margin-right:auto}
 .brand:hover{color:var(--on-deep)}
-.brand small{display:block;font:600 .66rem "Source Sans 3",sans-serif;color:var(--gold-on-deep);letter-spacing:.2em;text-transform:uppercase;margin-top:4px}
+.brand small{display:block;font:600 .66rem "Plus Jakarta Sans",sans-serif;color:var(--gold-on-deep);letter-spacing:.2em;text-transform:uppercase;margin-top:4px}
 .nav{display:flex;list-style:none;margin:0;padding:0;gap:2px}
 .nav>li{position:relative}
-.nav a,.nav .top{display:block;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--on-deep);font-weight:600;font-size:.98rem;white-space:nowrap}
+.nav a,.nav .top{display:block;padding:10px 10px;border-radius:8px;text-decoration:none;color:var(--on-deep);font-weight:600;font-size:.92rem;white-space:nowrap}
 .nav a:hover,.nav .top:hover{color:var(--gold-on-deep)}
 .nav [aria-current="page"],.nav .here>.top{color:var(--gold-on-deep);box-shadow:inset 0 -2px 0 var(--gold-on-deep);border-radius:0}
 .sub{display:none;position:absolute;left:0;top:100%;min-width:260px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;list-style:none;margin:0;box-shadow:var(--shadow)}
@@ -142,12 +143,12 @@ header.site :focus-visible,footer :focus-visible,.hero :focus-visible,.cta :focu
 .shortlist:hover{color:var(--on-deep)}
 .shortlist b{background:var(--gold);color:var(--on-gold);border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:.8rem}
 .shortlist[data-n="0"]{display:none}@media (max-width:600px){.shortlist .sl-t{display:none}}@media (max-width:380px){.brand small{display:none}}
-.menu-btn{display:none;background:transparent;border:1px solid color-mix(in srgb,var(--on-deep) 35%,transparent);border-radius:8px;padding:9px 14px;min-height:44px;color:var(--on-deep);font:700 .95rem "Source Sans 3",sans-serif;letter-spacing:.04em;cursor:pointer}
+.menu-btn{display:none;background:transparent;border:1px solid color-mix(in srgb,var(--on-deep) 35%,transparent);border-radius:8px;padding:9px 14px;min-height:44px;color:var(--on-deep);font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;cursor:pointer}
 @media (max-width:1020px){.menu-btn{display:block}.navwrap{display:none;position:absolute;left:0;right:0;top:100%;background:var(--deep);border-bottom:1px solid color-mix(in srgb,var(--gold-on-deep) 38%,transparent);max-height:calc(100vh - var(--hdr));max-height:calc(100dvh - var(--hdr));overflow:auto;overscroll-behavior:contain;padding:8px max(16px,env(safe-area-inset-right)) 20px max(16px,env(safe-area-inset-left))}.navwrap.open{display:block}.nav{flex-direction:column}.nav a,.nav .top{padding:12px}.sub{display:block;position:static;border:0;box-shadow:none;padding:0 0 8px 12px;background:none}.sub a{color:color-mix(in srgb,var(--on-deep) 82%,transparent)}.bar .hdr-cta{display:none}}
 /* phones held sideways: use the width, two menu columns */
 @media (max-width:1020px) and (min-width:600px) and (orientation:landscape){.nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 16px;align-items:start}}
 /* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;min-height:48px;border-radius:8px;font:700 1rem "Source Sans 3",sans-serif;letter-spacing:.01em;text-decoration:none;border:1.5px solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s,color .18s,border-color .18s,transform .18s,box-shadow .18s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;min-height:48px;border-radius:8px;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;text-decoration:none;border:1.5px solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s,color .18s,border-color .18s,transform .18s,box-shadow .18s}
 .btn-gold{background:var(--gold);color:var(--on-gold);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 8px 20px -10px color-mix(in srgb,var(--gold) 80%,transparent)}.btn-gold:hover{filter:brightness(1.07);color:var(--on-gold);transform:translateY(-1px)}
 .btn-line{border-color:color-mix(in srgb,currentColor 55%,transparent);color:var(--ink);background:transparent}.btn-line:hover{border-color:currentColor}
 .btn-sm{padding:8px 16px;min-height:40px;font-size:.92rem}
@@ -170,7 +171,7 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 @media (max-width:900px){.split{grid-template-columns:minmax(0,1fr)}.split>.ph,.split>.ph.tall{aspect-ratio:16/9}}
 /* phones held sideways keep the hero side by side instead of stacking a huge photo */
 @media (max-width:900px) and (min-width:620px) and (orientation:landscape){.hero .split,.page-head .split{grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:24px}.hero .split>.ph,.page-head .split>.ph{aspect-ratio:4/3}}
-.lede{font-size:clamp(1.1rem,1.6vw,1.24rem);color:var(--ink-2);max-width:58ch}
+.lede{font-size:clamp(1.06rem,1.5vw,1.18rem);color:var(--ink-2);max-width:58ch}
 .muted{color:var(--ink-2)}.small{font-size:.92rem}
 .crumbs{font-size:.92rem;color:var(--ink-2);padding-top:20px}
 .crumbs ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0}
@@ -190,6 +191,8 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .ph svg.mtn{position:absolute;inset:auto 0 0 0;width:100%;height:55%;opacity:.5}
 .ph figcaption{position:relative;margin:16px;background:var(--card);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--ink-2);box-shadow:var(--shadow)}
 .ph figcaption b{color:var(--ink)}
+.ph.has-img::before{display:none}.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph .wm{position:absolute;inset:0;display:grid;place-items:center;font:700 clamp(1.1rem,3.2vw,2.2rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.82);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-18deg);pointer-events:none}
 .ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
 figure{margin:0}
 /* cards */
@@ -206,6 +209,10 @@ figure{margin:0}
 @media (max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .stat{border-top:1px solid var(--gold);padding-top:14px;color:var(--ink-2);font-size:.97rem}
 .stat b{display:block;font:500 2.3rem/1.15 "Fraunces",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
+.rating{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px 32px;align-items:center;background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:clamp(20px,3vw,32px);box-shadow:var(--shadow);margin-top:20px}
+@media (max-width:760px){.rating{grid-template-columns:auto minmax(0,1fr)}.rating .actions{grid-column:1/-1}}
+.rating-score b{display:block;font:500 clamp(3rem,6vw,4.2rem)/1 "Fraunces",Georgia,serif;letter-spacing:-.03em}.rating-score span{font-size:.85rem;color:var(--ink-2)}
+.stars{display:flex;gap:2px;color:var(--gold);margin:0 0 6px}.rating-t{font-weight:600;margin:0 0 2px}
 .quote-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:28px;margin:0}
 .quote-card blockquote{margin:0 0 16px;font:400 1.15rem/1.5 "Fraunces",Georgia,serif}
 .quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
@@ -228,7 +235,7 @@ details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-botto
 .agenda time{font-weight:700}
 /* tabs */
 .tabs [role=tablist]{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.tabs [role=tab]{padding:10px 18px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 1rem "Source Sans 3",sans-serif;cursor:pointer}
+.tabs [role=tab]{padding:10px 18px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 .95rem "Plus Jakarta Sans",sans-serif;cursor:pointer}
 .tabs [role=tab][aria-selected=true]{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
 .tabs [role=tabpanel]{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px}
 .tabs dl{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px 24px;margin:0}
@@ -238,7 +245,7 @@ details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-botto
 details{border-top:1px solid var(--line)}details:last-of-type{border-bottom:1px solid var(--line)}
 summary{cursor:pointer;padding:20px 0;font:500 1.15rem/1.35 "Fraunces",Georgia,serif;list-style:none;display:flex;justify-content:space-between;gap:16px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";font:300 1.6rem/1 "Source Sans 3",sans-serif;color:var(--gold-ink);flex:none}
+summary::after{content:"+";font:300 1.6rem/1 "Plus Jakarta Sans",sans-serif;color:var(--gold-ink);flex:none}
 details[open] summary::after{content:"\2212"}
 details>div{padding-bottom:16px}
 /* cta */
@@ -251,7 +258,7 @@ details>div{padding-bottom:16px}
 .frow input[type=search]{flex:1 1 260px;padding:11px 16px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
 .frow select{width:auto;flex:0 1 auto;padding:10px 12px;border-radius:8px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:thin}
-.chip{flex:none;padding:8px 14px;min-height:40px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 .93rem "Source Sans 3",sans-serif;cursor:pointer}
+.chip{flex:none;padding:8px 14px;min-height:40px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 .93rem "Plus Jakarta Sans",sans-serif;cursor:pointer}
 .chip[aria-pressed=true]{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
 .result-count{font-size:.95rem;color:var(--ink-2);margin:8px 0 0}
 /* small screens: the filter bar must not eat the screen */
@@ -267,7 +274,7 @@ details>div{padding-bottom:16px}
 .vcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .vcard .vn{font-weight:700;line-height:1.3}
 .vcard .vs{display:block;font-size:.85rem;color:var(--ink-2);font-weight:400}
-.add{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px 12px;min-height:40px;font:700 .85rem "Source Sans 3",sans-serif;cursor:pointer;white-space:nowrap}
+.add{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px 12px;min-height:40px;font:700 .85rem "Plus Jakarta Sans",sans-serif;cursor:pointer;white-space:nowrap}
 .add[aria-pressed=true]{background:var(--deep);border-color:var(--deep);color:var(--on-deep)}
 .empty{display:none;padding:32px 0}
 /* forms */
@@ -315,11 +322,11 @@ dl.nap dt{font-weight:700}dl.nap dd{margin:0}
 .toc ol{margin:8px 0 0;padding-left:1.2em}
 table.t{border-collapse:collapse;width:100%;font-size:.97rem;margin:16px 0}
 table.t th,table.t td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-table.t th{font:700 .8rem "Source Sans 3",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);background:var(--soft)}
+table.t th{font:700 .8rem "Plus Jakarta Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);background:var(--soft)}
 .tscroll{overflow-x:auto}
 /* footer */
 footer{border-top:1px solid color-mix(in srgb,var(--gold-on-deep) 38%,transparent);padding:clamp(48px,6vw,80px) 0 110px;font-size:.97rem;color:color-mix(in srgb,var(--on-deep) 74%,transparent);background:var(--deep)}
-footer h2{font:700 .78rem "Source Sans 3",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-on-deep);margin-bottom:16px}
+footer h2{font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-on-deep);margin-bottom:16px}
 footer .fcols>div:first-child h2{font:500 1.35rem "Fraunces",Georgia,serif;letter-spacing:0;text-transform:none;color:var(--on-deep)}
 footer ul{list-style:none;padding:0;margin:0}footer li{margin:8px 0}footer a{color:color-mix(in srgb,var(--on-deep) 82%,transparent);text-decoration:none}footer a:hover{color:var(--gold-on-deep);text-decoration:underline}
 .fcols{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:32px}
@@ -341,10 +348,14 @@ footer ul{list-style:none;padding:0;margin:0}footer li{margin:8px 0}footer a{col
 """
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Source+Sans+3:wght@400;500;600;700&display=swap">')
+         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..600,100;1,9..144,400..600,100&family=Plus+Jakarta+Sans:wght@400..700&display=swap">')
 
-LOGO_SVG = (f'<svg width="38" height="38" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="{DEEP}" stroke="{ACCENT}" stroke-width="1"/>'
-            f'<path d="M8.5 23.5 10.6 12l4.7 5.4L18 9.5l2.7 7.9 4.7-5.4 2.1 11.5z" fill="{ACCENT}"/><rect x="8.5" y="25" width="19" height="2.4" rx="1.2" fill="{ACCENT}"/></svg>')
+# Minimal crown mark: redrawn from the client's crown, without the figures, script lettering or tagline.
+LOGO_SVG = (f'<svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="{DEEP}" stroke="{ACCENT}" stroke-width="1"/>'
+            f'<g fill="{ACCENT}"><path d="M13.2 33.4 8.6 18.6l6.6 5.2 2.3-9.6 4 8.2L24 10.2l2.5 12.2 4-8.2 2.3 9.6 6.6-5.2-4.6 14.8Q24 29.6 13.2 33.4Z" stroke="{ACCENT}" stroke-width="1.1" stroke-linejoin="round"/>'
+            '<circle cx="8.4" cy="17.4" r="1.7"/><circle cx="17.4" cy="13" r="1.7"/><circle cx="30.6" cy="13" r="1.7"/><circle cx="39.6" cy="17.4" r="1.7"/>'
+            '<path d="M24 5.2c1.5 1.7 2.3 3 2.3 4.2a2.3 2.3 0 0 1-4.6 0c0-1.2.8-2.5 2.3-4.2Z"/>'
+            f'<path d="M14.6 36.6Q24 33.2 33.4 36.6" fill="none" stroke="{ACCENT}" stroke-width="1.5" stroke-linecap="round"/></g></svg>')
 
 ICONS = {
     "team": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c2.8 0 5 2.2 5 5"/></svg>',
@@ -360,7 +371,24 @@ WA_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fi
 
 MTN = '<svg class="mtn" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120 70 52l40 36 70-74 60 58 40-30 120 78z" fill="var(--grass)" opacity=".35"/><path d="M0 120 110 76l60 26 90-50 140 68z" fill="var(--grass)" opacity=".5"/></svg>'
 
+# Photo slots. Drop an image named after the slot into photos/placeholder/ (stand-in, shown with a
+# PLACEHOLDER watermark) or photos/ (final client photo, no watermark) and rebuild. See photos/README.md.
+PHOTO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos")
+PHOTO_SLOTS = {}
+def photo_slug(caption):
+    return re.sub(r"[^a-z0-9]+", "-", caption.lower()).strip("-")[:44].strip("-")
+
 def photo(caption, cls=""):
+    slug = photo_slug(caption)
+    PHOTO_SLOTS[slug] = caption
+    for sub, stand_in in (("", False), ("placeholder", True)):
+        for ext in ("jpg", "jpeg", "webp", "png"):
+            if os.path.exists(os.path.join(PHOTO_DIR, sub, f"{slug}.{ext}")):
+                src = "__ASSETS__photos/" + (sub + "/" if sub else "") + f"{slug}.{ext}"
+                if stand_in:
+                    return (f'<figure class="ph has-img is-placeholder {cls}"><img src="{src}" alt="Placeholder image. To be replaced with: {E(caption)}" loading="lazy" decoding="async">'
+                            f'<span class="wm" aria-hidden="true">Placeholder</span><figcaption><b>Placeholder. Photo to supply:</b> {E(caption)}</figcaption></figure>')
+                return f'<figure class="ph has-img {cls}"><img src="{src}" alt="{E(caption[:1].upper() + caption[1:])}" loading="lazy" decoding="async"></figure>'
     return f'<figure class="ph {cls}" role="img" aria-label="Photo placeholder: {E(caption)}">{MTN}<figcaption><b>Photo to supply:</b> {E(caption)}</figcaption></figure>'
 
 def confirm(text):
@@ -436,7 +464,25 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 })();
 """
 
+CSP_BASE = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; "
+            "object-src 'none'; base-uri 'self'; form-action 'self'")
+SCRIPT_HASHES = set()
+def with_csp(page):
+    """Allow only this page's own inline scripts, by SHA-256 hash. No 'unsafe-inline' for scripts."""
+    hs = []
+    for m in re.finditer(r"<script>(.*?)</script>", page, re.S):
+        h = "'sha256-" + base64.b64encode(hashlib.sha256(m.group(1).encode()).digest()).decode() + "'"
+        if h not in hs:
+            hs.append(h)
+    SCRIPT_HASHES.update(hs)
+    return page.replace("__CSP__", CSP_BASE.format(hashes=" ".join(hs)))
+
 def layout(here, title, desc, body, schema, scripts="", og_type="website", noindex=False):
+    assets = "/assets/" if PROD else link("/assets/favicon.svg", here)[:-len("favicon.svg")]
+    return with_csp(_layout(here, title, desc, body, schema, scripts, og_type, noindex)).replace("__ASSETS__", assets)
+
+def _layout(here, title, desc, body, schema, scripts="", og_type="website", noindex=False):
     canonical = DOMAIN + here if here != "/404.html" else DOMAIN + "/"
     robots = "noindex, follow" if noindex else "index, follow, max-image-preview:large, max-snippet:-1"
     ribbon = "" if PROD else f'<div class="demo-ribbon">Demo v2 for review. Yellow notes mark items to confirm. <a href="{link("/", here)}">Home</a></div>'
@@ -444,6 +490,8 @@ def layout(here, title, desc, body, schema, scripts="", og_type="website", noind
 <html lang="en-KE">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{E(title)}</title>
 <meta name="description" content="{E(desc)}">
@@ -524,6 +572,9 @@ FAQ_HOME = [
      f"Request a quote online, call or WhatsApp {B['phone_display']}, or email {B['email']}. Tell us your group size, dates and budget and we reply with options."),
 ]
 
+G = B["google"]
+STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
+
 def home(here):
     services = [
         ("team", "/team-building/", "Team building events", "Facilitated indoor, outdoor and adventure programmes built around what you want the team to come away with."),
@@ -535,13 +586,12 @@ def home(here):
     feat = REGIONS[:6]
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
     logos = "".join(f'<div class="logo-slot">Client logo {i}</div>' for i in range(1, 7))
-    quotes = "".join(f'<figure class="quote-card"><blockquote>“Testimonial {i} to supply: one or two sentences from an HR or admin lead about a real event.”</blockquote><figcaption>Name, role, company · event and venue</figcaption></figure>' for i in (1, 2, 3))
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
     body = f"""
 <section class="hero"><div class="wrap split">
 <div>
 <p class="eyebrow">Corporate team building · Nairobi, Kenya</p>
-<h1>Team building in Kenya, planned and run for you</h1>
+<h1>Team building in Kenya, <em>planned and run for you</em></h1>
 <p class="lede">We plan the programme, book the venue, get your team there and facilitate the day, from Nairobi gardens to Naivasha, Sagana, Nanyuki and the coast.</p>
 <div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_hero">Request a quote</a><a class="btn btn-line" href="{link('/venues/', here)}">Browse {TOTAL} venues</a></div>
 <p class="small muted" style="margin-top:16px">Prefer to talk? Call or WhatsApp <a href="tel:{B['phone']}" data-ev="tel_hero">{B['phone_display']}</a></p>
@@ -556,7 +606,7 @@ def home(here):
 <div class="stat"><b>{TOTAL}</b>venues in {len(REGIONS)} regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
 <div class="stat"><b><span class="tbc">to supply</span></b>events delivered</div>
-<div class="stat"><b><span class="tbc">to supply</span></b>Google rating</div>
+<div class="stat"><b>{G['rating']}</b>Google rating from {G['reviews']} reviews</div>
 </div>
 </div></section>
 
@@ -589,8 +639,14 @@ def home(here):
 
 <section><div class="wrap">
 <h2>What clients say</h2>
-{confirm("Supply 3 to 6 real testimonials with the person's name, role and company, and permission to publish. Google reviews can be embedded here once the Business Profile has them.")}
-<div class="grid3" style="margin-top:16px">{quotes}</div>
+<div class="rating">
+<div class="rating-score"><b>{G['rating']}</b><span>out of 5</span></div>
+<div><p class="stars" role="img" aria-label="Rated {G['rating']} out of 5 on Google">{STAR * 5}</p>
+<p class="rating-t">Rated {G['rating']} out of 5 on Google, from {G['reviews']} reviews.</p>
+<p class="small muted" style="margin:0">Figures from our Google Business Profile, {G['as_of']}.</p></div>
+<div class="actions" style="margin:0"><a class="btn btn-line" href="{G['url']}" rel="noopener" data-ev="google_reviews">Read the reviews on Google</a></div>
+</div>
+{confirm("Rating and review count were read from the Google Business Profile and should be re-checked at launch. To quote individual reviews here, supply 3 to 6 with each reviewer's permission, name, role and company.")}
 </div></section>
 
 <section class="band"><div class="wrap">
@@ -1149,12 +1205,12 @@ def checklist(here):
 <section class="page-head"><div class="wrap">
 <h1>Team building planning checklist and budget planner</h1>
 <p class="lede">Tick off each step as you go and total your costs per person. Your ticks are saved in this browser. Print it to share with your manager.</p>
-<div class="actions noprint"><button class="btn btn-line" type="button" onclick="window.print()">Print or save as PDF</button></div>
+<div class="actions noprint"><button class="btn btn-line" type="button" id="print-btn">Print or save as PDF</button></div>
 </div></section>
 <section style="padding-top:0"><div class="wrap grid2">
 <div><h2>Checklist</h2><ul class="check" id="checklist">{lis}</ul></div>
 <div id="planner"><h2>Budget planner</h2><p class="muted small">Enter the figures from your quotes in Kenya shillings. Nothing is sent anywhere.</p>
-<form class="planner" id="pl" oninput="calc()">
+<form class="planner" id="pl">
 <div class="fgrid2">
 <div><label for="p-n">People</label><input id="p-n" type="number" min="1" value="50" inputmode="numeric"></div>
 <div><label for="p-v">Venue package per person</label><input id="p-v" type="number" min="0" value="0" inputmode="numeric"></div>
@@ -1173,7 +1229,7 @@ def checklist(here):
 function calc(){{var g=function(i){{return Math.max(0,parseFloat(document.getElementById(i).value)||0)}};var n=Math.max(1,g('p-n'));
 var sub=n*g('p-v')+n*g('p-nights')*g('p-room')+g('p-t')+g('p-f')+n*g('p-a');var tot=sub*(1+g('p-c')/100);
 var fmt=function(x){{return 'KES '+Math.round(x).toLocaleString('en-KE')}};document.getElementById('p-total').textContent=fmt(tot);document.getElementById('p-pp').textContent=fmt(tot/n);}}
-calc();
+calc();document.getElementById('pl').addEventListener('input',calc);document.getElementById('print-btn').addEventListener('click',function(){{window.print()}});
 (function(){{var K='cma_checklist',s;try{{s=JSON.parse(localStorage.getItem(K)||'{{}}')}}catch(e){{s={{}}}}
 [].forEach.call(document.querySelectorAll('#checklist input'),function(c){{c.checked=!!s[c.id];c.addEventListener('change',function(){{s[c.id]=c.checked;try{{localStorage.setItem(K,JSON.stringify(s))}}catch(e){{}}}})}});}})();
 </script>
@@ -1386,8 +1442,20 @@ Sitemap: {DOMAIN}/sitemap.xml
             "/category/*       /blog/                301",
             "/feed/            /blog/                301",
             "", ]),
-        "assets/favicon.svg": LOGO_SVG.replace('width="38" height="38" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
-        "assets/logo.svg": LOGO_SVG.replace('width="38" height="38" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
+        "_headers": "\n".join([
+            "# Security headers for Cloudflare Pages / Netlify. Each page also carries its own CSP meta tag.",
+            "/*",
+            "  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload",
+            "  Content-Security-Policy: " + CSP_BASE.format(hashes=" ".join(sorted(SCRIPT_HASHES))) + "; frame-ancestors 'none'; upgrade-insecure-requests",
+            "  X-Content-Type-Options: nosniff",
+            "  X-Frame-Options: DENY",
+            "  Referrer-Policy: strict-origin-when-cross-origin",
+            "  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+            "  Cross-Origin-Opener-Policy: same-origin",
+            "  Cross-Origin-Resource-Policy: same-origin",
+            "", ]),
+        "assets/favicon.svg": LOGO_SVG.replace('width="40" height="40" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
+        "assets/logo.svg": LOGO_SVG.replace('width="40" height="40" ', 'xmlns="http://www.w3.org/2000/svg" ').replace(' aria-hidden="true"', ""),
     }
     reg = "\n".join(f"- [{r['name']}]({DOMAIN}/venues/{r['slug']}/): {r['count']} venues, {r['setting'].lower()}, {r['travel']} from Nairobi. Best for: {r['best']}" for r in REGIONS)
     files["llms.txt"] = f"""# {B['name']}
@@ -1437,4 +1505,11 @@ for name, txt in extras().items():
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     with open(fp, "w") as fh:
         fh.write(txt)
+if os.path.isdir(PHOTO_DIR):
+    for root, _, names in os.walk(PHOTO_DIR):
+        for n in names:
+            if n.lower().endswith((".jpg", ".jpeg", ".webp", ".png")):
+                dst = os.path.join(OUT, "assets", "photos", os.path.relpath(root, PHOTO_DIR))
+                os.makedirs(dst, exist_ok=True)
+                shutil.copy2(os.path.join(root, n), dst)
 print(f"{len(pages)} pages, {TOTAL} venues, {len(REGIONS)} regions -> {OUT}{' (production)' if PROD else ''}")
