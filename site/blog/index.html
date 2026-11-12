@@ -135,35 +135,7 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .collage .ph .wm{font-size:clamp(.7rem,1.6vw,1.1rem)}
 @media (max-width:900px){.collage{aspect-ratio:16/11}.collage .ph:not(:first-child) figcaption{-webkit-line-clamp:2}}
 @media (max-width:900px) and (min-width:620px) and (orientation:landscape){.hero .collage{aspect-ratio:5/4}}
-/* event showcase: wipe reveal, slow zoom, staggered caption, progress index */
-.show{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);margin-top:28px;align-items:stretch}
-.show-stage{position:relative;aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;background:var(--deep);box-shadow:var(--shadow)}
-.show-slide{position:absolute;inset:0;opacity:0;z-index:0;visibility:hidden}
-.show-slide.out{opacity:1;z-index:1;visibility:visible}
-.show-slide.on{opacity:1;z-index:2;visibility:visible;animation:show-wipe 1s cubic-bezier(.77,0,.18,1)}
-.show-slide img,.show-empty{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.show-empty{background:linear-gradient(135deg,var(--deep-2),var(--deep))}.show-empty svg{position:absolute;inset:auto 0 0 0;width:100%;height:60%;opacity:.35}.show-empty svg path{fill:var(--gold-on-deep)}
-.show-slide.on img,.show-slide.on .show-empty{animation:show-zoom 7.5s cubic-bezier(.2,.6,.2,1) both}
-.show-slide::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(6,10,20,.86) 0%,rgba(6,10,20,.35) 38%,transparent 62%)}
-.show-slide .wm{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font:700 clamp(1.1rem,3.4vw,2.4rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.8);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-14deg);pointer-events:none}
-.show-cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:clamp(16px,3vw,32px);color:#F6F2E8}
-.show-cap h3{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;margin:6px 0 4px;color:#fff}.show-cap p{margin:0 0 8px;max-width:46ch;color:rgba(246,242,232,.88)}
-.show-n{font:700 .74rem "Plus Jakarta Sans",sans-serif;letter-spacing:.18em;color:var(--gold-on-deep)}
-.show-slide.on .show-cap>*{animation:show-rise .7s cubic-bezier(.2,.7,.2,1) both}.show-slide.on .show-cap>:nth-child(1){animation-delay:.35s}.show-slide.on .show-cap>:nth-child(2){animation-delay:.45s}.show-slide.on .show-cap>:nth-child(3){animation-delay:.55s}.show-slide.on .show-cap>:nth-child(4){animation-delay:.65s}
-.show-side{display:flex;flex-direction:column;justify-content:space-between;gap:16px}
-.show-tabs{list-style:none;margin:0;padding:0;max-width:none;display:grid}
-.show-tab{position:relative;display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;min-height:48px;color:var(--ink-2);font:600 1rem "Plus Jakarta Sans",sans-serif;cursor:pointer;transition:color .2s,padding-left .3s}
-.show-tab:hover{color:var(--ink)}.show-tab[aria-current]{color:var(--ink);padding-left:10px}
-.show-i{font:500 .95rem "Fraunces",Georgia,serif;color:var(--gold-ink)}
-.show-tab i{position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--gold)}
-.show-tab[aria-current] i{width:100%}.show.run .show-tab[aria-current] i{animation:show-fill 6.5s linear both}
-.show-pause{align-self:flex-start;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-height:40px;color:var(--ink-2);font:700 .85rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;cursor:pointer}
-@keyframes show-wipe{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
-@keyframes show-zoom{from{transform:scale(1.14)}to{transform:scale(1)}}
-@keyframes show-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes show-fill{from{width:0}to{width:100%}}
-@media (max-width:860px){.show{grid-template-columns:minmax(0,1fr)}.show-stage{aspect-ratio:4/3}.show-side{flex-direction:row;align-items:center}.show-tabs{flex:1;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.show-tab{padding:16px 0 12px;justify-content:center;min-height:44px}.show-tab[aria-current]{padding-left:0}.show-tab>span:nth-child(2){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.show-tab i{top:auto;bottom:0;width:100%;background:var(--line)}.show-tab[aria-current] i{background:var(--gold)}}
-@media (max-width:860px) and (min-width:620px) and (orientation:landscape){.show-stage{aspect-ratio:21/9}}
 .ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
 figure{margin:0}
 /* cards */

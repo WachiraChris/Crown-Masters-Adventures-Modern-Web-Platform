@@ -2,7 +2,7 @@
 <html lang="en-KE">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8GSUmskC37bMsNB7asJSqfeQN2S8quiU7dF+TTlE2qw=' 'sha256-8Z5HGPd8ZlSUAqqe7duGkh904lzmujprlzFi6AqA2y8=' 'sha256-kvvJRETH/Y2hnyZem9YHgbNpDcHeq9RAVq2qTgk2p3U='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-8GSUmskC37bMsNB7asJSqfeQN2S8quiU7dF+TTlE2qw=' 'sha256-8Z5HGPd8ZlSUAqqe7duGkh904lzmujprlzFi6AqA2y8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Corporate Team Building in Kenya | Crown Masters Adventures</title>
@@ -135,35 +135,7 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .collage .ph .wm{font-size:clamp(.7rem,1.6vw,1.1rem)}
 @media (max-width:900px){.collage{aspect-ratio:16/11}.collage .ph:not(:first-child) figcaption{-webkit-line-clamp:2}}
 @media (max-width:900px) and (min-width:620px) and (orientation:landscape){.hero .collage{aspect-ratio:5/4}}
-/* event showcase: wipe reveal, slow zoom, staggered caption, progress index */
-.show{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);margin-top:28px;align-items:stretch}
-.show-stage{position:relative;aspect-ratio:16/10;border-radius:var(--r);overflow:hidden;background:var(--deep);box-shadow:var(--shadow)}
-.show-slide{position:absolute;inset:0;opacity:0;z-index:0;visibility:hidden}
-.show-slide.out{opacity:1;z-index:1;visibility:visible}
-.show-slide.on{opacity:1;z-index:2;visibility:visible;animation:show-wipe 1s cubic-bezier(.77,0,.18,1)}
-.show-slide img,.show-empty{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.show-empty{background:linear-gradient(135deg,var(--deep-2),var(--deep))}.show-empty svg{position:absolute;inset:auto 0 0 0;width:100%;height:60%;opacity:.35}.show-empty svg path{fill:var(--gold-on-deep)}
-.show-slide.on img,.show-slide.on .show-empty{animation:show-zoom 7.5s cubic-bezier(.2,.6,.2,1) both}
-.show-slide::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(6,10,20,.86) 0%,rgba(6,10,20,.35) 38%,transparent 62%)}
-.show-slide .wm{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font:700 clamp(1.1rem,3.4vw,2.4rem) "Plus Jakarta Sans",sans-serif;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.8);text-shadow:0 1px 10px rgba(0,0,0,.55);transform:rotate(-14deg);pointer-events:none}
-.show-cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:clamp(16px,3vw,32px);color:#F6F2E8}
-.show-cap h3{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;margin:6px 0 4px;color:#fff}.show-cap p{margin:0 0 8px;max-width:46ch;color:rgba(246,242,232,.88)}
-.show-n{font:700 .74rem "Plus Jakarta Sans",sans-serif;letter-spacing:.18em;color:var(--gold-on-deep)}
-.show-slide.on .show-cap>*{animation:show-rise .7s cubic-bezier(.2,.7,.2,1) both}.show-slide.on .show-cap>:nth-child(1){animation-delay:.35s}.show-slide.on .show-cap>:nth-child(2){animation-delay:.45s}.show-slide.on .show-cap>:nth-child(3){animation-delay:.55s}.show-slide.on .show-cap>:nth-child(4){animation-delay:.65s}
-.show-side{display:flex;flex-direction:column;justify-content:space-between;gap:16px}
-.show-tabs{list-style:none;margin:0;padding:0;max-width:none;display:grid}
-.show-tab{position:relative;display:flex;align-items:baseline;gap:14px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:14px 2px;min-height:48px;color:var(--ink-2);font:600 1rem "Plus Jakarta Sans",sans-serif;cursor:pointer;transition:color .2s,padding-left .3s}
-.show-tab:hover{color:var(--ink)}.show-tab[aria-current]{color:var(--ink);padding-left:10px}
-.show-i{font:500 .95rem "Fraunces",Georgia,serif;color:var(--gold-ink)}
-.show-tab i{position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--gold)}
-.show-tab[aria-current] i{width:100%}.show.run .show-tab[aria-current] i{animation:show-fill 6.5s linear both}
-.show-pause{align-self:flex-start;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-height:40px;color:var(--ink-2);font:700 .85rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;cursor:pointer}
-@keyframes show-wipe{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
-@keyframes show-zoom{from{transform:scale(1.14)}to{transform:scale(1)}}
-@keyframes show-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes show-fill{from{width:0}to{width:100%}}
-@media (max-width:860px){.show{grid-template-columns:minmax(0,1fr)}.show-stage{aspect-ratio:4/3}.show-side{flex-direction:row;align-items:center}.show-tabs{flex:1;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.show-tab{padding:16px 0 12px;justify-content:center;min-height:44px}.show-tab[aria-current]{padding-left:0}.show-tab>span:nth-child(2){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.show-tab i{top:auto;bottom:0;width:100%;background:var(--line)}.show-tab[aria-current] i{background:var(--gold)}}
-@media (max-width:860px) and (min-width:620px) and (orientation:landscape){.show-stage{aspect-ratio:21/9}}
 .ph.wide{aspect-ratio:16/9}.ph.tall{aspect-ratio:4/5}.ph.short{aspect-ratio:21/9}
 figure{margin:0}
 /* cards */
@@ -381,13 +353,6 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <div class="answer"><p><strong>In short:</strong> Crown Masters Adventures is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p></div>
 </div></section>
 
-<section class="band"><div class="wrap">
-<p class="eyebrow">Our events</p>
-<h2>A look at the days we plan and run</h2>
-<div class="show" aria-roledescription="carousel" aria-label="Kinds of events we run"><div class="show-stage"><div class="show-slide on" id="show-0"><img src="/assets/photos/placeholder/two-teams-competing-in-an-outdoor-challenge.jpg" alt="Placeholder image. To be replaced with: two teams competing in an outdoor challenge, wide shot showing the venue" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><div class="show-cap"><span class="show-n">01 / 06</span><h3>Outdoor challenges</h3><p>Facilitated team games on venue lawns and fields.</p><span class="tbc">Placeholder photo: client, venue and date to add</span></div></div><div class="show-slide" id="show-1"><img src="/assets/photos/placeholder/rafting-team-at-sagana.jpg" alt="Placeholder image. To be replaced with: rafting team at Sagana" loading="lazy" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><div class="show-cap"><span class="show-n">02 / 06</span><h3>Adventure days</h3><p>White-water rafting and river activities at Sagana.</p><span class="tbc">Placeholder photo: client, venue and date to add</span></div></div><div class="show-slide" id="show-2"><img src="/assets/photos/placeholder/a-group-on-the-lawn-of-a-lakeside-resort.jpg" alt="Placeholder image. To be replaced with: a group on the lawn of a lakeside resort" loading="lazy" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><div class="show-cap"><span class="show-n">03 / 06</span><h3>Lakeside retreats</h3><p>Overnight programmes at Rift Valley lake resorts.</p><span class="tbc">Placeholder photo: client, venue and date to add</span></div></div><div class="show-slide" id="show-3"><img src="/assets/photos/placeholder/indoor-problem-solving-challenge.jpg" alt="Placeholder image. To be replaced with: indoor problem-solving challenge" loading="lazy" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><div class="show-cap"><span class="show-n">04 / 06</span><h3>Indoor workshops</h3><p>Problem-solving and communication sessions in a hall or boardroom.</p><span class="tbc">Placeholder photo: client, venue and date to add</span></div></div><div class="show-slide" id="show-4"><div class="show-empty" role="img" aria-label="Photo placeholder: staff in an office car park doing a group workout"><svg class="mtn" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120 70 52l40 36 70-74 60 58 40-30 120 78z" fill="var(--grass)" opacity=".35"/><path d="M0 120 110 76l60 26 90-50 140 68z" fill="var(--grass)" opacity=".5"/></svg></div><div class="show-cap"><span class="show-n">05 / 06</span><h3>Corporate fitness</h3><p>Group workouts led by our trainers at your office.</p><span class="tbc">Photo to supply: client, venue and date to add</span></div></div><div class="show-slide" id="show-5"><img src="/assets/photos/placeholder/year-end-group-photo-at-a-naivasha-resort.jpg" alt="Placeholder image. To be replaced with: year-end group photo at a Naivasha resort" loading="lazy" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><div class="show-cap"><span class="show-n">06 / 06</span><h3>Year-end events</h3><p>End-of-year team days and group celebrations.</p><span class="tbc">Placeholder photo: client, venue and date to add</span></div></div></div><div class="show-side"><ol class="show-tabs"><li><button type="button" class="show-tab" aria-current="true" aria-controls="show-0"><span class="show-i">01</span><span>Outdoor challenges</span><i aria-hidden="true"></i></button></li><li><button type="button" class="show-tab" aria-controls="show-1"><span class="show-i">02</span><span>Adventure days</span><i aria-hidden="true"></i></button></li><li><button type="button" class="show-tab" aria-controls="show-2"><span class="show-i">03</span><span>Lakeside retreats</span><i aria-hidden="true"></i></button></li><li><button type="button" class="show-tab" aria-controls="show-3"><span class="show-i">04</span><span>Indoor workshops</span><i aria-hidden="true"></i></button></li><li><button type="button" class="show-tab" aria-controls="show-4"><span class="show-i">05</span><span>Corporate fitness</span><i aria-hidden="true"></i></button></li><li><button type="button" class="show-tab" aria-controls="show-5"><span class="show-i">06</span><span>Year-end events</span><i aria-hidden="true"></i></button></li></ol><button type="button" class="show-pause" aria-pressed="false">Pause</button></div></div>
-<p class="confirm"><span><b>To confirm with client:</b> Supply 6 to 10 photos from real events with the client name, venue and date for each. They replace these slots and the captions, and more slides can be added.</span></p>
-</div></section>
-
 <section><div class="wrap">
 <h2>What we do</h2>
 <p class="muted">Four services that work together, so one call covers the whole event.</p>
@@ -459,23 +424,6 @@ d.addEventListener('visibilitychange',tick);
 if(reduce||S.length<2){var c=root.querySelector('.hero-ctl');if(c)c.hidden=true;return}
 function start(){load(S[1]);tick()}
 if(d.readyState==='complete')start();else window.addEventListener('load',start);
-})();
-</script><script>
-(function(){var d=document,el=d.querySelector('.show');if(!el)return;
-var S=[].slice.call(el.querySelectorAll('.show-slide')),T=[].slice.call(el.querySelectorAll('.show-tab')),btn=el.querySelector('.show-pause'),
-i=0,t,user=true,hover=false,seen=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-function tick(){clearTimeout(t);el.classList.remove('run');if(user||hover||reduce||!seen)return;void el.offsetWidth;el.classList.add('run');t=setTimeout(function(){go(i+1)},6500)}
-function go(n){var p=i;n=(n+S.length)%S.length;if(n===p){tick();return}
-S[p].classList.remove('on');S[p].classList.add('out');setTimeout(function(){S[p].classList.remove('out')},1100);T[p].removeAttribute('aria-current');
-i=n;S[i].classList.add('on');T[i].setAttribute('aria-current','true');tick()}
-T.forEach(function(b,n){b.addEventListener('click',function(){go(n)})});
-el.addEventListener('mouseenter',function(){hover=true;tick()});el.addEventListener('mouseleave',function(){hover=false;tick()});
-el.addEventListener('focusin',function(){hover=true;tick()});el.addEventListener('focusout',function(){hover=false;tick()});
-btn.addEventListener('click',function(){user=!user;btn.setAttribute('aria-pressed',user);btn.textContent=user?'Play':'Pause';tick()});
-var x0=null;el.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
-el.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>40)go(i+(dx<0?1:-1))},{passive:true});
-btn.hidden=true;
-if('IntersectionObserver' in window){new IntersectionObserver(function(en){seen=en[0].isIntersecting;tick()},{threshold:.35}).observe(el)}else{seen=true;tick()}
 })();
 </script>
 </body>
