@@ -69,7 +69,7 @@ header.site :focus-visible,footer :focus-visible,.hero :focus-visible,.cta :focu
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
 /* layout */
-section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48px) 0}
+section{padding:clamp(48px,6vw,80px) 0}section.tight{padding:clamp(32px,4vw,48px) 0}
 .band{background:var(--soft);border-block:1px solid var(--line)}.band-ink{background:var(--deep);color:var(--on-deep)}.band-ink a{color:var(--gold-on-deep)}
 /* home hero */
 .hero{background:radial-gradient(120% 140% at 85% 0%,var(--deep-2) 0%,var(--deep) 62%);color:var(--on-deep);padding:clamp(40px,6vw,88px) 0 clamp(48px,6.5vw,96px)}
@@ -144,18 +144,22 @@ figure{margin:0}
 .card h3 a{color:var(--ink);text-decoration:none}.card h3 a::after{content:"";position:absolute;inset:0}
 .card.link{position:relative}.card.link:hover{border-color:var(--gold);transform:translateY(-3px)}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
-.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:20px}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:24px}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:400px){.tiles{grid-template-columns:minmax(0,1fr)}}
 .card.tile{flex-direction:row;align-items:center;gap:12px;padding:16px 18px}.card.tile .icon{width:40px;height:40px;margin:0;flex:none}
-.card.tile h3{margin:0;font-size:1.02rem;line-height:1.25;flex:1}.tile-go{color:var(--gold-ink);font-size:1.1rem;transition:transform .2s}.card.tile:hover .tile-go{transform:translateX(3px)}
+.card.tile h3{margin:0;line-height:1.25;flex:1}.tile-go{color:var(--gold-ink);font-size:1.1rem;transition:transform .2s}.card.tile:hover .tile-go{transform:translateX(3px)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
 .trusted{margin:26px 0 0;max-width:none;font-size:.95rem;color:var(--ink-2)}.trusted b{color:var(--ink);font-weight:700}
 .in-short{margin:10px 0 0;max-width:86ch;font-size:.92rem;color:var(--ink-2)}
 .cta-slim{display:flex;align-items:center;justify-content:space-between;gap:16px 28px;flex-wrap:wrap;margin-top:clamp(28px,4vw,44px);padding:20px 0;border-block:1px solid var(--line)}.cta-slim p{margin:0;max-width:60ch}
 #clients{scroll-margin-top:calc(var(--hdr) + 16px)}
+/* one scale for section heads, card titles and card text */
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap}.sec-head h2{margin-bottom:.3em}.sec-head p{margin:0}
+.card h3,.steps h3,.card.tile h3,.steps.compact h3{font-size:1.125rem}
+.card p,.steps p,.steps.compact p{font-size:1rem}.card .meta{font-size:.92rem}
 /* region carousel: three cards in view, arrows either side, swipe on touch */
-.rcar{position:relative;margin-top:20px}
+.rcar{position:relative;margin-top:18px}
 .rcar-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 48px)/3);gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:6px 2px 22px;overscroll-behavior-x:contain}
 .rcar-track::-webkit-scrollbar{display:none}.rcar-track>.card{scroll-snap-align:start}
 .rcar-btn{position:absolute;top:calc(50% - 30px);z-index:2;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--deep);color:var(--gold-on-deep);border:1px solid color-mix(in srgb,var(--gold-on-deep) 50%,transparent);box-shadow:0 8px 20px -8px rgba(0,0,0,.45);cursor:pointer;transition:opacity .2s,transform .2s,background-color .2s}
@@ -184,12 +188,12 @@ figure{margin:0}
 @media (max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .stat{border-top:1px solid var(--gold);padding-top:14px;color:var(--ink-2);font-size:.97rem}
 .stat b{display:block;font:500 2.3rem/1.15 "Fraunces",Georgia,serif;color:var(--ink);letter-spacing:-.02em}
-.rating{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px 32px;align-items:center;background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:clamp(20px,3vw,32px);box-shadow:var(--shadow);margin-top:20px}
+.rating{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px 32px;align-items:center;background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:clamp(20px,3vw,32px);box-shadow:var(--shadow);margin-top:24px}
 @media (max-width:760px){.rating{grid-template-columns:auto minmax(0,1fr)}.rating .actions{grid-column:1/-1}}
 .rating-score b{display:block;font:500 clamp(3rem,6vw,4.2rem)/1 "Fraunces",Georgia,serif;letter-spacing:-.03em}.rating-score span{font-size:.85rem;color:var(--ink-2)}
 .stars{display:flex;gap:2px;color:var(--gold);margin:0 0 6px}.rating-t{font-weight:600;margin:0 0 2px}
 .quote-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:28px;margin:0}
-.quote-card{display:flex;flex-direction:column}.quote-card blockquote{margin:0 0 18px;font:400 1.02rem/1.6 "Fraunces",Georgia,serif}.quote-card blockquote.clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;margin-bottom:10px}
+.quote-card{display:flex;flex-direction:column}.quote-card blockquote{margin:0 0 18px;font:400 1rem/1.6 "Fraunces",Georgia,serif}.quote-card blockquote.clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;margin-bottom:10px}
 .rv-more{align-self:flex-start;background:none;border:0;padding:6px 0;min-height:32px;margin:0 0 10px;color:var(--grass);font:700 .9rem "Plus Jakarta Sans",sans-serif;text-decoration:underline;text-underline-offset:.18em;cursor:pointer}.rv-more:hover{color:var(--ink)}
 @media (pointer:coarse){.rv-more{min-height:44px}}
 .quote-card figcaption{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}.quote-card figcaption b{color:var(--ink)}
@@ -206,10 +210,10 @@ details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-botto
 @media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
 .steps li{counter-increment:s}
 .steps li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--gold);color:var(--gold-ink);font:500 1.2rem "Fraunces",Georgia,serif;margin-bottom:14px}
-.steps.compact{gap:14px 28px;margin-top:16px}
+.steps.compact{gap:16px 28px;margin-top:24px}
 .steps.compact li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:start}
 .steps.compact li::before{width:32px;height:32px;font-size:1rem;margin:0;grid-row:1/3}
-.steps.compact h3{font-size:1.02rem;margin:5px 0 0}.steps.compact p{margin:0;font-size:.9rem;line-height:1.5;color:var(--ink-2)}
+.steps.compact h3{margin:4px 0 2px}.steps.compact p{margin:0;line-height:1.55;color:var(--ink-2)}
 .steps.compact+.cta-slim{margin-top:clamp(20px,3vw,32px);padding:16px 0}
 /* agenda */
 .agenda{list-style:none;padding:0;margin:0;border-left:1px solid var(--gold);max-width:none}
@@ -383,7 +387,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <div class="hero-ctl"><div class="hero-dots"><button type="button" class="hero-dot" aria-current="true" aria-label="Show photo 1 of 5"><i></i></button><button type="button" class="hero-dot" aria-label="Show photo 2 of 5"><i></i></button><button type="button" class="hero-dot" aria-label="Show photo 3 of 5"><i></i></button><button type="button" class="hero-dot" aria-label="Show photo 4 of 5"><i></i></button><button type="button" class="hero-dot" aria-label="Show photo 5 of 5"><i></i></button></div><span class="hero-note">Placeholder photos, to be replaced with client event photos</span></div>
 </div></section>
 
-<section class="tight"><div class="wrap">
+<section class="tight" style="padding-bottom:0"><div class="wrap">
 <div class="stats" style="margin-top:0">
 <div class="stat"><b>123</b>venues in 10 regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
@@ -394,7 +398,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <p class="in-short"><strong>In short:</strong> Crown Masters Adventures is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p>
 </div></section>
 
-<section style="padding-top:clamp(24px,3vw,40px)"><div class="wrap">
+<section><div class="wrap">
 <h2>What clients say</h2>
 <div class="rating">
 <div class="rating-score"><b>4.9</b><span>out of 5</span></div>
@@ -411,7 +415,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <div class="tiles"><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c2.8 0 5 2.2 5 5"/></svg></div><h3><a href="/team-building/">Team building events</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div><h3><a href="/venues/">Venue booking</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg></div><h3><a href="/corporate-fitness/">Corporate fitness</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16M7 21v-4M17 21v-4"/><circle cx="8" cy="14" r=".5"/><circle cx="16" cy="14" r=".5"/></svg></div><h3><a href="/team-building/transport-logistics/">Transport and logistics</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/></svg></div><h3><a href="/private-events/">Private events</a></h3><span class="tile-go" aria-hidden="true">→</span></div></div>
 </div></section>
 
-<section style="padding:clamp(40px,5vw,64px) 0"><div class="wrap">
+<section><div class="wrap">
 <h2>How booking works</h2>
 <ol class="steps compact">
 <li><h3>Share the brief</h3><p>Group size, dates, budget and what you want the event to achieve.</p></li>
@@ -424,7 +428,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 </div></section>
 
 <section class="band"><div class="wrap">
-<div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
+<div class="sec-head"><div><h2>Choose a region by how far you want to travel</h2>
 <p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
 <a class="btn btn-line" href="/venues/">See all 10 regions</a></div>
 <div class="rcar">
@@ -437,7 +441,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <section id="faq"><div class="wrap grid2"><div><h2>Frequently asked questions</h2><p class="muted">Straight answers to the questions HR and admin teams ask us most.</p></div><div><details><summary>Where can we find a team building venue in Kenya?</summary><div><p>We work with 123 venues in 10 regions: day-trip gardens around Nairobi, lakeside resorts in Naivasha, Nakuru and Elementaita, river and adventure camps in Sagana, highland lodges in Nanyuki, and beach hotels in Mombasa and Diani. We also book venues in Tanzania, Zanzibar and Uganda.</p></div></details><details><summary>How do we find the best team building facilitators in Kenya?</summary><div><p>The best facilitators for your team are the ones who build the day around your goal, not a fixed list of games. Ask who will run your event on the day, how they handle safety on activities such as rafting, what happens if it rains, and how they close the day with a debrief. At Crown Masters Adventures our facilitators plan and run the programme, and clients rate us 4.9 out of 5 on Google from 18 reviews (November 2026).</p></div></details><details><summary>Are there affordable team building packages in Kenya?</summary><div><p>Yes. The price per person depends mostly on the venue, travel distance, meals and whether you stay overnight. The most affordable options are a half-day session at your own office or a day trip to a garden venue around Nairobi, on a weekday outside the November and December peak. Tell us your budget per person and we build the package to fit it.</p></div></details><details><summary>What should we look for in the best corporate team building companies in Kenya?</summary><div><p>Look for one company that handles the facilitation, venue, meals and transport together, gives a written quote priced per person, offers a real choice of venues, and can show reviews from other organisations. Crown Masters Adventures is based in Parklands, Nairobi, plans and facilitates the programme, books from 123 venues in 10 regions, and arranges group transport.</p></div></details><details><summary>How do we book?</summary><div><p>Request a quote online, call or WhatsApp +254 706 494 806, or email teambuilding@crownmastersadventures.co.ke. Tell us your group size, dates and budget and we reply with options.</p></div></details></div></div></section>
 
 <section class="band"><div class="wrap">
-<div class="region-head"><div><h2>Planning guides</h2>
+<div class="sec-head"><div><h2>Planning guides</h2>
 <p class="muted" style="margin:0">Practical answers for whoever has been asked to organise this year's event.</p></div>
 <a class="btn btn-line" href="/blog/">All 4 guides</a></div>
 <div class="grid3" style="margin-top:24px"><div class="card link"><h3><a href="/blog/plan-team-building-event-kenya/">How to plan a corporate team building event in Kenya</a></h3><p>A step-by-step plan for organisers: goals, budget, dates, venue, activities and logistics.</p><p class="meta">Guide</p></div><div class="card link"><h3><a href="/blog/team-building-venues-near-nairobi/">Team building near Nairobi: day trip or overnight?</a></h3><p>How travel time, budget and goals decide between a one-day event and a retreat.</p><p class="meta">Guide</p></div><div class="card link"><h3><a href="/blog/choose-team-building-company-kenya/">How to choose a team building company in Kenya</a></h3><p>What to check before you hire team building facilitators: fit, safety, venues, pricing and proof.</p><p class="meta">Guide</p></div></div>
