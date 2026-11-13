@@ -700,6 +700,8 @@ FAQ_HOME = [
      "Yes. The price per person depends mostly on the venue, travel distance, meals and whether you stay overnight. The most affordable options are a half-day session at your own office or a day trip to a garden venue around Nairobi, on a weekday outside the November and December peak. Tell us your budget per person and we build the package to fit it."),
     ("What should we look for in the best corporate team building companies in Kenya?",
      f"Look for one company that handles the facilitation, venue, meals and transport together, gives a written quote priced per person, offers a real choice of venues, and can show reviews from other organisations. Crown Masters Adventures is based in Parklands, Nairobi, plans and facilitates the programme, books from {TOTAL} venues in {len(REGIONS)} regions, and arranges group transport."),
+    ("How much does corporate team building cost in Kenya?",
+     "The cost depends on group size, the venue, whether you stay overnight, transport and the activities you choose. Send us your headcount, dates and budget and we quote options that fit. Our free budget planner shows how each cost adds up."),
     ("How do we book?",
      f"Request a quote online, call or WhatsApp {B['phone_display']}, or email {B['email']}. Tell us your group size, dates and budget and we reply with options."),
 ]
