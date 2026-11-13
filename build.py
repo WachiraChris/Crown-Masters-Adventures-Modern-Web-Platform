@@ -259,7 +259,7 @@ figure{margin:0}
 .rating-score b{display:block;font:500 clamp(3rem,6vw,4.2rem)/1 "Fraunces",Georgia,serif;letter-spacing:-.03em}.rating-score span{font-size:.85rem;color:var(--ink-2)}
 .stars{display:flex;gap:2px;color:var(--gold);margin:0 0 6px}.rating-t{font-weight:600;margin:0 0 2px}
 .quote-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:28px;margin:0}
-.quote-card blockquote{margin:0 0 16px;font:400 1.15rem/1.5 "Fraunces",Georgia,serif}
+.quote-card{display:flex;flex-direction:column}.quote-card blockquote{margin:0 0 18px;font:400 1.02rem/1.6 "Fraunces",Georgia,serif}.quote-card figcaption{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}.quote-card figcaption b{color:var(--ink)}
 .quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
 /* drive-time chart */
 details.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 20px;max-width:920px}
@@ -761,7 +761,7 @@ def home(here):
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
     if B["reviews"]:
         reviews = '<div class="grid3" style="margin-top:20px">' + "".join(
-            f'<figure class="quote-card"><p class="stars" aria-hidden="true">{STAR * 5}</p><blockquote>“{E(r["text"])}”</blockquote>'
+            f'<figure class="quote-card"><blockquote>“{E(r["text"])}”</blockquote>'
             f'<figcaption><b>{E(r["name"])}</b> · Google review{", " + E(r["date"]) if r.get("date") else ""}</figcaption></figure>' for r in B["reviews"]) + "</div>"
     else:
         reviews = confirm("Review quotes go here. Paste 3 to 6 reviews from the Google Business Profile, word for word with the reviewer's name, and they will appear as cards under the rating. Re-check the rating and review count at launch.")

@@ -27,8 +27,16 @@ BUSINESS = {
     "google": {"rating": "4.9", "reviews": 18, "as_of": "November 2026",
                "url": "https://www.google.com/maps/search/?api=1&query=Crown+Masters+Adventures+Park+Place+Parklands+Nairobi"},
     # Real Google reviews only, copied word for word. Each entry: {"name": "...", "text": "...", "date": "March 2026"}.
-    # Leave empty until the review text has been supplied; nothing is shown until then.
-    "reviews": [],
+    # Supplied by the agency on 13 November 2026 from the Google Business Profile. "date" is the year, worked out from
+    # Google's "a year ago", "4 years ago" and "7 years ago" on that day.
+    "reviews": [
+        {"name": "Brian Ochieng", "date": "2025",
+         "text": "Crown Masters Adventures offers more than an experience. Outside the top notch professionalism offered by the team, every member has a distinct uniqueness and a particular type of benevolence, that makes you feel like you are part of their family upon interacting with them. Their activities are incredibly fun, their zeal and passion is unmatched and their presentation is a thing to marvel at. If nostalgia is entrenched in your soul and you cherish memories, be sure that any event or activity that is graced by crown Masters Adventures will linger in your memory for a while."},
+        {"name": "Carolyne Mathew", "date": "2022",
+         "text": "Hey crown masters it was pleasure booking our staycation vacation with you..we happy and our expectations were meet..to more adventurous trips and staycations with you..we appreciate everything,,thank you🥰..Sun n sand was the best place to be ..will be revisiting again..thanks Crown masters …"},
+        {"name": "Beatrice Wanjangi", "date": "2019",
+         "text": "Crown masters adventures is surely the best team building company ever they facilitated our company's event and it turned out to be the best ever team building we have ever held,from planning,transport,execution and their services are superbly awesome I highly recommend @crownmastersadventures."},
+    ],
     "social": {
         "Facebook": "https://www.facebook.com/crownmastersadventures",
         "Instagram": "https://www.instagram.com/crownmastersadventures",
