@@ -255,6 +255,8 @@ figure{margin:0}
 .rcar-btn[disabled]{opacity:0;pointer-events:none}
 @media (max-width:960px){.rcar-track{grid-auto-columns:calc((100% - 24px)/2)}}
 @media (max-width:640px){.rcar-track{grid-auto-columns:84%;gap:14px}.rcar-btn.prev{left:-8px}.rcar-btn.next{right:-8px}}
+.card.gcard{padding:22px 24px;gap:6px;min-height:128px}.card.gcard .meta{margin:0;padding:0;order:-1;font:700 .74rem "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink)}
+.card.gcard h3{margin:0;flex:1}.card.gcard .tile-go{align-self:flex-end}.card.gcard:hover .tile-go{transform:translateX(3px)}
 /* client strip: one row, slow loop, uniform cells */
 .cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
 .cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
@@ -705,11 +707,11 @@ FAQ_HOME = [
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
 RC_JS = r"""
-(function(){var d=document,c=d.querySelector('.rcar');if(!c)return;var t=c.querySelector('.rcar-track'),p=c.querySelector('.prev'),n=c.querySelector('.next');
+[].forEach.call(document.querySelectorAll('.rcar'),function(c){var t=c.querySelector('.rcar-track'),p=c.querySelector('.prev'),n=c.querySelector('.next');
 function upd(){p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft+t.clientWidth>=t.scrollWidth-2}
 function go(dir){var card=t.firstElementChild,step=card?card.getBoundingClientRect().width+24:t.clientWidth,per=Math.max(1,Math.round(t.clientWidth/step));
 t.scrollBy({left:dir*step*per,behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
-p.addEventListener('click',function(){go(-1)});n.addEventListener('click',function(){go(1)});t.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();})();
+p.addEventListener('click',function(){go(-1)});n.addEventListener('click',function(){go(1)});t.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();});
 """
 RV_JS = r"""
 (function(){var d=document;[].forEach.call(d.querySelectorAll('.quote-card'),function(c){var q=c.querySelector('blockquote'),b=c.querySelector('.rv-more');if(!q||!b)return;
@@ -793,7 +795,7 @@ def home(here):
     svc = "".join(f'<div class="card link tile"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><span class="tile-go" aria-hidden="true">→</span></div>' for i, p, t, d in services)
     feat = REGIONS
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0].rstrip("."))}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
-    guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES[:3])
+    guides = "".join(f'<div class="card link gcard"><p class="meta">Guide</p><h3><a href="{link(p, here)}">{E(t)}</a></h3><span class="tile-go" aria-hidden="true">→</span></div>' for p, t, d, _ in ARTICLES)
     if B["reviews"]:
         reviews = '<div class="grid3" style="margin-top:20px;align-items:start">' + "".join(
             f'<figure class="quote-card"><blockquote>“{E(r["text"])}”</blockquote>'
@@ -858,10 +860,13 @@ def home(here):
 {faq_block(FAQ_HOME)}
 
 <section class="band"><div class="wrap">
-<div class="sec-head"><div><h2>Planning guides</h2>
-<p class="muted" style="margin:0">Practical answers for whoever has been asked to organise this year's event.</p></div>
+<div class="sec-head"><div><h2>Planning guides</h2></div>
 <a class="btn btn-line" href="{link('/blog/', here)}">All {len(ARTICLES)} guides</a></div>
-<div class="grid3" style="margin-top:24px">{guides}</div>
+<div class="rcar">
+<button type="button" class="rcar-btn prev" aria-label="Previous guides" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+<div class="rcar-track" tabindex="0" role="group" aria-label="Planning guides, scroll sideways for more">{guides}</div>
+<button type="button" class="rcar-btn next" aria-label="More guides"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+</div>
 </div></section>
 
 {cta(here)}
