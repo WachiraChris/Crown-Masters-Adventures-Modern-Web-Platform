@@ -259,7 +259,10 @@ figure{margin:0}
 .rating-score b{display:block;font:500 clamp(3rem,6vw,4.2rem)/1 "Fraunces",Georgia,serif;letter-spacing:-.03em}.rating-score span{font-size:.85rem;color:var(--ink-2)}
 .stars{display:flex;gap:2px;color:var(--gold);margin:0 0 6px}.rating-t{font-weight:600;margin:0 0 2px}
 .quote-card{background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:28px;margin:0}
-.quote-card{display:flex;flex-direction:column}.quote-card blockquote{margin:0 0 18px;font:400 1.02rem/1.6 "Fraunces",Georgia,serif}.quote-card figcaption{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}.quote-card figcaption b{color:var(--ink)}
+.quote-card{display:flex;flex-direction:column}.quote-card blockquote{margin:0 0 18px;font:400 1.02rem/1.6 "Fraunces",Georgia,serif}.quote-card blockquote.clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;margin-bottom:10px}
+.rv-more{align-self:flex-start;background:none;border:0;padding:6px 0;min-height:32px;margin:0 0 10px;color:var(--grass);font:700 .9rem "Plus Jakarta Sans",sans-serif;text-decoration:underline;text-underline-offset:.18em;cursor:pointer}.rv-more:hover{color:var(--ink)}
+@media (pointer:coarse){.rv-more{min-height:44px}}
+.quote-card figcaption{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}.quote-card figcaption b{color:var(--ink)}
 .quote-card figcaption{font-size:.92rem;color:var(--ink-2)}
 /* drive-time chart */
 details.dt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 20px;max-width:920px}
@@ -682,6 +685,11 @@ FAQ_HOME = [
 
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
+RV_JS = r"""
+(function(){var d=document;[].forEach.call(d.querySelectorAll('.quote-card'),function(c){var q=c.querySelector('blockquote'),b=c.querySelector('.rv-more');if(!q||!b)return;
+q.classList.add('clamp');if(q.scrollHeight<=q.clientHeight+2){q.classList.remove('clamp');return}
+b.hidden=false;b.addEventListener('click',function(){var open=q.classList.toggle('clamp')===false;b.setAttribute('aria-expanded',open);b.textContent=open?'Read less':'Read more'})})})();
+"""
 CL_JS = r"""
 (function(){var d=document,s=d.querySelector('.clients'),b=d.querySelector('.cl-pause');if(!s||!b)return;
 if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){b.hidden=true;return}
@@ -760,9 +768,9 @@ def home(here):
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
     if B["reviews"]:
-        reviews = '<div class="grid3" style="margin-top:20px">' + "".join(
+        reviews = '<div class="grid3" style="margin-top:20px;align-items:start">' + "".join(
             f'<figure class="quote-card"><blockquote>“{E(r["text"])}”</blockquote>'
-            f'<figcaption><b>{E(r["name"])}</b> · Google review{", " + E(r["date"]) if r.get("date") else ""}</figcaption></figure>' for r in B["reviews"]) + "</div>"
+            f'<button type="button" class="rv-more" hidden aria-expanded="false">Read more</button><figcaption><b>{E(r["name"])}</b> · Google review{", " + E(r["date"]) if r.get("date") else ""}</figcaption></figure>' for r in B["reviews"]) + "</div>"
     else:
         reviews = confirm("Review quotes go here. Paste 3 to 6 reviews from the Google Business Profile, word for word with the reviewer's name, and they will appear as cards under the rating. Re-check the rating and review count at launch.")
     body = f"""
@@ -831,7 +839,7 @@ def home(here):
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
                   f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
-                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{CL_JS}</script>")
+                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{CL_JS}</script><script>{RV_JS}</script>")
 add("/", home)
 
 # ---------------- team building pillar
