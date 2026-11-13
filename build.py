@@ -112,7 +112,7 @@ CSS = (":root{" + _LIGHT + "}\n@media (prefers-color-scheme:dark){:root:not([dat
 body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.7 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 body{font-variation-settings:"SOFT" 100,"WONK" 0}
 h1,h2,h3,h4{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-optical-sizing:auto;line-height:1.14;letter-spacing:-.015em;margin:0 0 .5em;text-wrap:balance}
-h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.25rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
+h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.125rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
 h1 em{font-style:italic;font-weight:400;color:var(--gold-ink)}.hero h1 em{color:var(--gold-on-deep)}
 .eyebrow{display:flex;align-items:center;gap:12px;font:700 .74rem/1.3 "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 18px}.eyebrow::before{content:"";width:32px;height:1px;background:currentColor;flex:none}
 p{margin:0 0 1em;max-width:68ch}ul,ol{max-width:68ch}
@@ -179,7 +179,7 @@ section{padding:clamp(48px,6vw,80px) 0}section.tight{padding:clamp(32px,4vw,48px
 .crumbs ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0}
 .crumbs li+li::before{content:"/";margin-right:6px;color:var(--line)}
 .crumbs a{color:var(--ink-2)}
-.page-head{padding:24px 0 40px}
+.page-head{padding:24px 0 40px}.page-head+section:not(.band){padding-top:8px}
 /* answer box */
 .answer{border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--card);padding:18px 22px;border-radius:0 var(--r) var(--r) 0;margin:24px 0;max-width:72ch;box-shadow:var(--shadow)}
 .answer p{margin:0}
@@ -397,7 +397,7 @@ dl.nap dt{font-weight:700}dl.nap dd{margin:0}
 .ptotal{background:var(--deep);color:var(--on-deep);border-radius:10px;padding:20px;margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .ptotal b{display:block;color:var(--gold-on-deep);font:500 1.8rem "Fraunces",Georgia,serif}
 /* article */
-.prose{max-width:720px}.prose h2{margin-top:1.6em;font-size:1.7rem}.prose li{margin:.35em 0}
+.prose{max-width:720px}.prose h2{margin-top:1.6em;font-size:clamp(1.4rem,2.4vw,1.7rem)}.prose li{margin:.35em 0}
 .byline{font-size:.95rem;color:var(--ink-2);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:24px 0}
 .toc ol{margin:8px 0 0;padding-left:1.2em}
@@ -920,7 +920,7 @@ def team_building(here):
 {photo("two teams competing in an outdoor challenge, wide shot showing the venue")}
 </div></section>
 
-<section style="padding-top:16px"><div class="wrap">
+<section><div class="wrap">
 <h2>Choose a format</h2>
 <div class="grid4" style="margin-top:24px">{fh}</div>
 </div></section>
@@ -1098,7 +1098,7 @@ def venues(here):
             ("Can you book a venue that is not on this list?", "Yes. The list covers the venues we use most, and we can book others on request.")]
     body = f"""
 {crumbs([("Home", "/"), ("Venues", here)], here)}
-<section class="page-head" style="padding-bottom:24px"><div class="wrap split">
+<section class="page-head"><div class="wrap split">
 <div><h1>Venues in Kenya, Tanzania and Uganda</h1>
 <div class="answer"><p>We book and run team building events at {TOTAL} venues across {len(REGIONS)} regions, from day-trip gardens around Nairobi to lakeside resorts in Naivasha, adventure camps in Sagana, Mount Kenya lodges and beach hotels in Mombasa and Diani. Add venues to your quote and we'll check availability and prices for your dates.</p></div>
 <p class="small muted">Venue list last reviewed <time datetime="{UPDATED}">{UPDATED_TEXT}</time>.</p></div>
@@ -1165,7 +1165,7 @@ def region_page(r):
 <div class="actions"><a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_region">Get venue options</a><a class="btn btn-line" href="{link('/venues/', here)}">All regions</a></div></div>
 {photo(f"a team event at a venue in {r['short']}")}
 </div></section>
-<section style="padding-top:8px"><div class="wrap">
+<section><div class="wrap">
 <h2>{r['count']} venues in {E(r['name'])}</h2>
 <p class="muted">Add the venues you like to your quote. We check availability and prices for your dates.</p>
 {confirm("Names marked “name to confirm” need checking against the venue's official name: " + ", ".join(tbc) + ".") if tbc else ""}
@@ -1203,7 +1203,7 @@ def profile_template(here):
 <div class="tags"><span class="tag">[Region]</span><span class="tag">[Setting]</span><span class="tag">[Day trip / overnight]</span></div>
 <div class="grid3" style="margin-top:24px">{photo("venue lawn or main activity area", "wide")}{photo("conference hall or indoor breakout room", "wide")}{photo("rooms or dining area", "wide")}</div>
 </div></section>
-<section style="padding-top:0"><div class="wrap grid2">
+<section><div class="wrap grid2">
 <div><h2>About this venue</h2><p>[Two or three sentences: what the venue is like, what it is best for, and how far it is from Nairobi.]</p>
 <h3>Best for</h3><p>[e.g. one-day events for 50 to 150 people, outdoor challenges, year-end parties]</p></div>
 <div><h2>At a glance</h2><div class="tscroll"><table class="t"><tbody>
@@ -1458,7 +1458,7 @@ def checklist(here):
 <p class="lede">Tick off each step as you go and total your costs per person. Your ticks are saved in this browser. Print it to share with your manager.</p>
 <div class="actions noprint"><button class="btn btn-line" type="button" id="print-btn">Print or save as PDF</button></div>
 </div></section>
-<section style="padding-top:0"><div class="wrap grid2">
+<section><div class="wrap grid2">
 <div><h2>Checklist</h2><ul class="check" id="checklist">{lis}</ul></div>
 <div id="planner"><h2>Budget planner</h2><p class="muted small">Enter the figures from your quotes in Kenya shillings. Nothing is sent anywhere.</p>
 <form class="planner" id="pl">
@@ -1525,11 +1525,11 @@ def contact(here):
     maps_q = "Park+Place,+2nd+Avenue,+Parklands,+Nairobi"
     body = f"""
 {crumbs([("Home", "/"), ("Contact", here)], here)}
-<section class="page-head" style="padding-bottom:24px"><div class="wrap">
+<section class="page-head"><div class="wrap">
 <h1>Request a team building quote</h1>
 <p class="lede">Four short steps. We usually need your group size, dates and a budget range to send venue options and a price.</p>
 </div></section>
-<section style="padding-top:0"><div class="wrap split" style="align-items:start">
+<section><div class="wrap split" style="align-items:start">
 <form class="wizard" id="quote" novalidate>
 <ol class="progress" aria-label="Quote steps"><li class="on">1. You</li><li>2. Event</li><li>3. Place</li><li>4. Budget</li></ol>
 

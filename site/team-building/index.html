@@ -24,7 +24,7 @@
 body{margin:0;background:var(--paper);color:var(--ink);font:400 1rem/1.7 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 body{font-variation-settings:"SOFT" 100,"WONK" 0}
 h1,h2,h3,h4{font-family:"Fraunces",Georgia,"Times New Roman",serif;font-optical-sizing:auto;line-height:1.14;letter-spacing:-.015em;margin:0 0 .5em;text-wrap:balance}
-h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.25rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
+h1{font-size:clamp(2.15rem,5vw,3.9rem);font-weight:500;letter-spacing:-.022em;line-height:1.08}h2{font-size:clamp(1.65rem,3vw,2.35rem);font-weight:500}h3{font-size:1.125rem;font-weight:600;letter-spacing:-.005em}h4{font-size:1.05rem;font-weight:600}
 h1 em{font-style:italic;font-weight:400;color:var(--gold-ink)}.hero h1 em{color:var(--gold-on-deep)}
 .eyebrow{display:flex;align-items:center;gap:12px;font:700 .74rem/1.3 "Plus Jakarta Sans",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 18px}.eyebrow::before{content:"";width:32px;height:1px;background:currentColor;flex:none}
 p{margin:0 0 1em;max-width:68ch}ul,ol{max-width:68ch}
@@ -91,7 +91,7 @@ section{padding:clamp(48px,6vw,80px) 0}section.tight{padding:clamp(32px,4vw,48px
 .crumbs ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:0}
 .crumbs li+li::before{content:"/";margin-right:6px;color:var(--line)}
 .crumbs a{color:var(--ink-2)}
-.page-head{padding:24px 0 40px}
+.page-head{padding:24px 0 40px}.page-head+section:not(.band){padding-top:8px}
 /* answer box */
 .answer{border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--card);padding:18px 22px;border-radius:0 var(--r) var(--r) 0;margin:24px 0;max-width:72ch;box-shadow:var(--shadow)}
 .answer p{margin:0}
@@ -309,7 +309,7 @@ dl.nap dt{font-weight:700}dl.nap dd{margin:0}
 .ptotal{background:var(--deep);color:var(--on-deep);border-radius:10px;padding:20px;margin-top:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .ptotal b{display:block;color:var(--gold-on-deep);font:500 1.8rem "Fraunces",Georgia,serif}
 /* article */
-.prose{max-width:720px}.prose h2{margin-top:1.6em;font-size:1.7rem}.prose li{margin:.35em 0}
+.prose{max-width:720px}.prose h2{margin-top:1.6em;font-size:clamp(1.4rem,2.4vw,1.7rem)}.prose li{margin:.35em 0}
 .byline{font-size:.95rem;color:var(--ink-2);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:24px 0}
 .toc ol{margin:8px 0 0;padding-left:1.2em}
@@ -387,7 +387,7 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <figure class="ph has-img is-placeholder "><img src="/assets/photos/placeholder/two-teams-competing-in-an-outdoor-challenge.jpg" alt="Placeholder image. To be replaced with: two teams competing in an outdoor challenge, wide shot showing the venue" loading="lazy" decoding="async"><span class="wm" aria-hidden="true">Placeholder</span><figcaption><b>Placeholder. Photo to supply:</b> two teams competing in an outdoor challenge, wide shot showing the venue</figcaption></figure>
 </div></section>
 
-<section style="padding-top:16px"><div class="wrap">
+<section><div class="wrap">
 <h2>Choose a format</h2>
 <div class="grid4" style="margin-top:24px"><div class="card link"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg></div><h3><a href="/team-building/indoor/">Indoor team building</a></h3><p>Problem-solving and communication challenges in a hall or boardroom.</p></div><div class="card link"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 20 9 7l4 6 3-4 6 11z"/></svg></div><h3><a href="/team-building/outdoor-adventure/">Outdoor and adventure</a></h3><p>Obstacle courses, treasure hunts and rafting at lakes, rivers and gardens.</p></div><div class="card link"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div><h3><a href="/team-building/virtual-hybrid/">Virtual and hybrid</a></h3><p>Sessions for teams spread across offices or working remotely.</p></div><div class="card link"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16M7 21v-4M17 21v-4"/><circle cx="8" cy="14" r=".5"/><circle cx="16" cy="14" r=".5"/></svg></div><h3><a href="/team-building/transport-logistics/">Transport and logistics</a></h3><p>Coaches and timings that get everyone there and back.</p></div></div>
 </div></section>
