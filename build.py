@@ -285,6 +285,11 @@ details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-botto
 @media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
 .steps li{counter-increment:s}
 .steps li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--gold);color:var(--gold-ink);font:500 1.2rem "Fraunces",Georgia,serif;margin-bottom:14px}
+.steps.compact{gap:14px 28px;margin-top:16px}
+.steps.compact li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:start}
+.steps.compact li::before{width:32px;height:32px;font-size:1rem;margin:0;grid-row:1/3}
+.steps.compact h3{font-size:1.02rem;margin:5px 0 0}.steps.compact p{margin:0;font-size:.9rem;line-height:1.5;color:var(--ink-2)}
+.steps.compact+.cta-slim{margin-top:clamp(20px,3vw,32px);padding:16px 0}
 /* agenda */
 .agenda{list-style:none;padding:0;margin:0;border-left:1px solid var(--gold);max-width:none}
 .agenda li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;padding:0 0 18px 20px;position:relative}
@@ -807,9 +812,9 @@ def home(here):
 <div class="tiles">{svc}</div>
 </div></section>
 
-<section><div class="wrap">
+<section style="padding:clamp(40px,5vw,64px) 0"><div class="wrap">
 <h2>How booking works</h2>
-<ol class="steps" style="margin-top:24px">
+<ol class="steps compact">
 <li><h3>Share the brief</h3><p>Group size, dates, budget and what you want the event to achieve.</p></li>
 <li><h3>Compare venues</h3><p>We send a shortlist with costs, so you can choose with your finance team.</p></li>
 <li><h3>Agree the programme</h3><p>Activities, meals, transport and timings, confirmed in writing before the day.</p></li>

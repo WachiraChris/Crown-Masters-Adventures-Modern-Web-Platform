@@ -197,6 +197,11 @@ details.dt summary{padding:14px 0;font-size:1.05rem}details.dt>div{padding-botto
 @media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
 .steps li{counter-increment:s}
 .steps li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--gold);color:var(--gold-ink);font:500 1.2rem "Fraunces",Georgia,serif;margin-bottom:14px}
+.steps.compact{gap:14px 28px;margin-top:16px}
+.steps.compact li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:start}
+.steps.compact li::before{width:32px;height:32px;font-size:1rem;margin:0;grid-row:1/3}
+.steps.compact h3{font-size:1.02rem;margin:5px 0 0}.steps.compact p{margin:0;font-size:.9rem;line-height:1.5;color:var(--ink-2)}
+.steps.compact+.cta-slim{margin-top:clamp(20px,3vw,32px);padding:16px 0}
 /* agenda */
 .agenda{list-style:none;padding:0;margin:0;border-left:1px solid var(--gold);max-width:none}
 .agenda li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;padding:0 0 18px 20px;position:relative}
@@ -397,9 +402,9 @@ if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',p
 <div class="tiles"><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c2.8 0 5 2.2 5 5"/></svg></div><h3><a href="/team-building/">Team building events</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div><h3><a href="/venues/">Venue booking</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg></div><h3><a href="/corporate-fitness/">Corporate fitness</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 11h16M7 21v-4M17 21v-4"/><circle cx="8" cy="14" r=".5"/><circle cx="16" cy="14" r=".5"/></svg></div><h3><a href="/team-building/transport-logistics/">Transport and logistics</a></h3><span class="tile-go" aria-hidden="true">→</span></div><div class="card link tile"><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z"/></svg></div><h3><a href="/private-events/">Private events</a></h3><span class="tile-go" aria-hidden="true">→</span></div></div>
 </div></section>
 
-<section><div class="wrap">
+<section style="padding:clamp(40px,5vw,64px) 0"><div class="wrap">
 <h2>How booking works</h2>
-<ol class="steps" style="margin-top:24px">
+<ol class="steps compact">
 <li><h3>Share the brief</h3><p>Group size, dates, budget and what you want the event to achieve.</p></li>
 <li><h3>Compare venues</h3><p>We send a shortlist with costs, so you can choose with your finance team.</p></li>
 <li><h3>Agree the programme</h3><p>Activities, meals, transport and timings, confirmed in writing before the day.</p></li>
