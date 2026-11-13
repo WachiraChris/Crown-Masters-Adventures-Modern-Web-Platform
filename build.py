@@ -233,6 +233,10 @@ figure{margin:0}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
+.trusted{margin:26px 0 0;max-width:none;font-size:.95rem;color:var(--ink-2)}.trusted b{color:var(--ink);font-weight:700}
+.in-short{margin:10px 0 0;max-width:86ch;font-size:.92rem;color:var(--ink-2)}
+.cta-slim{display:flex;align-items:center;justify-content:space-between;gap:16px 28px;flex-wrap:wrap;margin-top:clamp(28px,4vw,44px);padding:20px 0;border-block:1px solid var(--line)}.cta-slim p{margin:0;max-width:60ch}
+#clients{scroll-margin-top:calc(var(--hdr) + 16px)}
 /* client strip: one row, slow loop, uniform cells */
 .cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
 .cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
@@ -764,15 +768,16 @@ def home(here):
         ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Executive transport hire to get your group to the venue and home again, on schedule."),
     ]
     svc = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in services)
-    feat = REGIONS[:6]
+    feat = REGIONS[:3]
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
-    guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES)
+    guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES[:3])
     if B["reviews"]:
         reviews = '<div class="grid3" style="margin-top:20px;align-items:start">' + "".join(
             f'<figure class="quote-card"><blockquote>“{E(r["text"])}”</blockquote>'
             f'<button type="button" class="rv-more" hidden aria-expanded="false">Read more</button><figcaption><b>{E(r["name"])}</b> · Google review{", " + E(r["date"]) if r.get("date") else ""}</figcaption></figure>' for r in B["reviews"]) + "</div>"
     else:
         reviews = confirm("Review quotes go here. Paste 3 to 6 reviews from the Google Business Profile, word for word with the reviewer's name, and they will appear as cards under the rating. Re-check the rating and review count at launch.")
+    trusted = ", ".join(E(n) for n, _ in CLIENTS[:7])
     body = f"""
 {hero(here)}
 
@@ -783,13 +788,23 @@ def home(here):
 <div class="stat"><b>{B['events_delivered'] or '<span class="tbc">to supply</span>'}</b>events delivered</div>
 <div class="stat"><b>{G['rating']}</b>Google rating from {G['reviews']} reviews</div>
 </div>
+<p class="trusted"><b>Trusted by teams at</b> {trusted} and more. <a href="#clients">See who we have served</a></p>
+<p class="in-short"><strong>In short:</strong> {B['name']} is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p>
 </div></section>
 
-<section class="tight"><div class="wrap">
-<div class="answer"><p><strong>In short:</strong> {B['name']} is a corporate team building company based in Parklands, Nairobi. We plan and facilitate team building events, book venues across Kenya, Tanzania and Uganda, deliver corporate fitness at clients' offices and arrange group transport.</p></div>
+<section style="padding-top:clamp(24px,3vw,40px)"><div class="wrap">
+<h2>What clients say</h2>
+<div class="rating">
+<div class="rating-score"><b>{G['rating']}</b><span>out of 5</span></div>
+<div><p class="stars" role="img" aria-label="Rated {G['rating']} out of 5 on Google">{STAR * 5}</p>
+<p class="rating-t">Rated {G['rating']} out of 5 on Google, from {G['reviews']} reviews.</p>
+<p class="small muted" style="margin:0">Figures from our Google Business Profile, {G['as_of']}.</p></div>
+<div class="actions" style="margin:0"><a class="btn btn-line" href="{G['url']}" target="_blank" rel="noopener noreferrer" data-ev="google_reviews">Read the reviews on Google<span class="sr"> (opens in a new tab)</span></a></div>
+</div>
+{reviews}
 </div></section>
 
-<section><div class="wrap">
+<section class="band"><div class="wrap">
 <h2>What we do</h2>
 <p class="muted">Four services that work together, so one call covers the whole event. We also plan <a href="{link('/private-events/', here)}">private events</a> such as baby showers, graduations and birthdays.</p>
 <div class="grid4" style="margin-top:24px">{svc}</div>
@@ -803,36 +818,28 @@ def home(here):
 <li><h3>Agree the programme</h3><p>Activities, meals, transport and timings, confirmed in writing before the day.</p></li>
 <li><h3>Your team takes part</h3><p>Our facilitators run the day, so the organiser joins in instead of managing it.</p></li>
 </ol>
+<div class="cta-slim"><p><b>Ready to start?</b> Send your group size, dates and budget, and we reply with venue options and a quote.</p>
+<a class="btn btn-gold" href="{link('/contact-us/#quote', here)}" data-ev="cta_mid">Request a quote</a></div>
 </div></section>
 
 <section class="band"><div class="wrap">
 <div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
 <p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
-<a class="btn btn-line" href="{link('/venues/', here)}">Compare all regions</a></div>
+<a class="btn btn-line" href="{link('/venues/', here)}">See all {len(REGIONS)} regions</a></div>
 <div class="grid3" style="margin-top:24px">{regcards}</div>
 </div></section>
 
-<section><div class="wrap">
-<h2>What clients say</h2>
-<div class="rating">
-<div class="rating-score"><b>{G['rating']}</b><span>out of 5</span></div>
-<div><p class="stars" role="img" aria-label="Rated {G['rating']} out of 5 on Google">{STAR * 5}</p>
-<p class="rating-t">Rated {G['rating']} out of 5 on Google, from {G['reviews']} reviews.</p>
-<p class="small muted" style="margin:0">Figures from our Google Business Profile, {G['as_of']}.</p></div>
-<div class="actions" style="margin:0"><a class="btn btn-line" href="{G['url']}" target="_blank" rel="noopener noreferrer" data-ev="google_reviews">Read the reviews on Google<span class="sr"> (opens in a new tab)</span></a></div>
-</div>
-{reviews}
-</div></section>
+{faq_block(FAQ_HOME)}
 
 <section class="band"><div class="wrap">
-<h2>Planning guides</h2>
-<p class="muted">Practical answers for whoever has been asked to organise this year's event.</p>
-<div class="grid4" style="margin-top:24px">{guides}</div>
+<div class="region-head"><div><h2>Planning guides</h2>
+<p class="muted" style="margin:0">Practical answers for whoever has been asked to organise this year's event.</p></div>
+<a class="btn btn-line" href="{link('/blog/', here)}">All {len(ARTICLES)} guides</a></div>
+<div class="grid3" style="margin-top:24px">{guides}</div>
 </div></section>
 
-{faq_block(FAQ_HOME)}
 {cta(here)}
-<section class="tight clients-sec"><div class="wrap">
+<section class="tight clients-sec" id="clients"><div class="wrap">
 {client_strip()}
 </div></section>
 """
