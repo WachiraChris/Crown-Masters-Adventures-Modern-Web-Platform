@@ -211,12 +211,11 @@ section{padding:clamp(56px,7.5vw,96px) 0}section.tight{padding:clamp(32px,4vw,48
 .hero-dot::before,.hero-dot i{content:"";position:absolute;left:0;top:13px;height:2px;border-radius:2px}
 .hero-dot::before{width:100%;background:color-mix(in srgb,var(--on-deep) 35%,transparent)}
 .hero-dot i{width:0;background:var(--gold-on-deep)}.hero-dot[aria-current] i{width:100%}.hero-bg.run .hero-dot[aria-current] i{animation:show-fill 6s linear both}
-.hero-pause{background:none;border:1px solid color-mix(in srgb,var(--on-deep) 40%,transparent);border-radius:8px;padding:5px 12px;min-height:32px;color:var(--on-deep);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
 .hero-note{font-size:.78rem;color:color-mix(in srgb,var(--on-deep) 75%,transparent);margin-left:auto}
 @media (max-width:900px){.hero-scrim{background:linear-gradient(to top,color-mix(in srgb,var(--deep) 96%,transparent) 0%,color-mix(in srgb,var(--deep) 82%,transparent) 55%,color-mix(in srgb,var(--deep) 70%,transparent) 100%)}.hero-wm{display:none}.hero-note{margin-left:0;flex-basis:100%}}
 @media (max-width:760px){.hero-bg{min-height:0}}
 @media (max-height:520px) and (orientation:landscape){.hero-bg{min-height:0;padding:28px 0 32px}.hero-ctl{margin-top:16px}}
-@media (pointer:coarse){.hero-dot{height:44px}.hero-dot::before,.hero-dot i{top:21px}.hero-pause{min-height:44px}}
+@media (pointer:coarse){.hero-dot{height:44px}.hero-dot::before,.hero-dot i{top:21px}}
 /* hero collage: one large photo, two small; still, no motion */
 .collage{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:12px;aspect-ratio:1/1}
 .collage .ph{aspect-ratio:auto;height:100%;min-height:0}.collage .ph:first-child{grid-row:1/3}
@@ -681,14 +680,13 @@ HERO_SLOTS = [  # background slideshow behind the home headline, in order
 ]
 HERO_JS = r"""
 (function(){var d=document,root=d.querySelector('.hero-bg');if(!root)return;
-var S=[].slice.call(root.querySelectorAll('.hero-slide')),D=[].slice.call(root.querySelectorAll('.hero-dot')),btn=root.querySelector('.hero-pause'),
+var S=[].slice.call(root.querySelectorAll('.hero-slide')),D=[].slice.call(root.querySelectorAll('.hero-dot')),
 i=0,t,paused=false,reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 function load(el){var im=el.querySelector('img[data-src]');if(im){im.src=im.getAttribute('data-src');im.removeAttribute('data-src')}}
 function tick(){clearTimeout(t);root.classList.remove('run');if(paused||reduce||d.hidden||S.length<2)return;void root.offsetWidth;root.classList.add('run');t=setTimeout(function(){go(i+1)},6000)}
 function go(n){S[i].classList.remove('on');D[i].removeAttribute('aria-current');i=(n+S.length)%S.length;load(S[i]);load(S[(i+1)%S.length]);
 S[i].classList.add('on');D[i].setAttribute('aria-current','true');tick()}
 D.forEach(function(b,n){b.addEventListener('click',function(){go(n)})});
-if(btn)btn.addEventListener('click',function(){paused=!paused;btn.setAttribute('aria-pressed',paused);btn.textContent=paused?'Play':'Pause';tick()});
 d.addEventListener('visibilitychange',tick);
 if(reduce||S.length<2){var c=root.querySelector('.hero-ctl');if(c)c.hidden=true;return}
 function start(){load(S[1]);tick()}
@@ -716,7 +714,7 @@ def hero(here):
     return f"""<section class="hero hero-bg">
 <div class="hero-slides" aria-hidden="true">{slides}</div><div class="hero-scrim" aria-hidden="true"></div>{wm}
 <div class="wrap"><div class="hero-text">{text}</div>
-<div class="hero-ctl"><div class="hero-dots">{dots}</div><button type="button" class="hero-pause" aria-pressed="false">Pause</button>{note}</div>
+<div class="hero-ctl"><div class="hero-dots">{dots}</div>{note}</div>
 </div></section>"""
 
 def home(here):
