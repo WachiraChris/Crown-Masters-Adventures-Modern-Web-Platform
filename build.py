@@ -667,8 +667,6 @@ def add(path, fn):
 # ---------------- home
 G = B["google"]
 FAQ_HOME = [
-    ("What does Crown Masters Adventures do?",
-     f"Crown Masters Adventures is a Nairobi-based team building company. We plan and facilitate corporate team building events, book team building venues across Kenya, Tanzania and Uganda, run corporate fitness programmes at your office, and arrange group transport, getaways and expeditions."),
     ("Where can we find a team building venue in Kenya?",
      f"We work with {TOTAL} venues in {len(REGIONS)} regions: day-trip gardens around Nairobi, lakeside resorts in Naivasha, Nakuru and Elementaita, river and adventure camps in Sagana, highland lodges in Nanyuki, and beach hotels in Mombasa and Diani. We also book venues in Tanzania, Zanzibar and Uganda."),
     ("How do we find the best team building facilitators in Kenya?",
@@ -677,12 +675,6 @@ FAQ_HOME = [
      "Yes. The price per person depends mostly on the venue, travel distance, meals and whether you stay overnight. The most affordable options are a half-day session at your own office or a day trip to a garden venue around Nairobi, on a weekday outside the November and December peak. Tell us your budget per person and we build the package to fit it."),
     ("What should we look for in the best corporate team building companies in Kenya?",
      f"Look for one company that handles the facilitation, venue, meals and transport together, gives a written quote priced per person, offers a real choice of venues, and can show reviews from other organisations. Crown Masters Adventures is based in Parklands, Nairobi, plans and facilitates the programme, books from {TOTAL} venues in {len(REGIONS)} regions, and arranges group transport."),
-    ("How much does corporate team building cost in Kenya?",
-     "The cost depends on group size, the venue, whether you stay overnight, transport and the activities you choose. Send us your headcount, dates and budget and we quote options that fit. Our free budget planner shows how each cost adds up."),
-    ("How far ahead should we book?",
-     "As early as you can. Popular resorts fill quickly for November and December year-end events and around public holidays, so start planning six to eight weeks ahead for those dates."),
-    ("Can you run team building at our office instead of a venue?",
-     "Yes. Indoor team building and our corporate fitness sessions only need an open space, such as a boardroom, a parking area, a rooftop or a nearby field."),
     ("How do we book?",
      f"Request a quote online, call or WhatsApp {B['phone_display']}, or email {B['email']}. Tell us your group size, dates and budget and we reply with options."),
 ]
