@@ -13,6 +13,8 @@ Rebuild of [crownmastersadventures.co.ke](https://crownmastersadventures.co.ke):
 | `site/` | Built site, production mode (clean URLs such as `/venues/`) — ready for Cloudflare Pages, Netlify or GitHub Pages |
 | `docs/BLUEPRINT.md` | Redesign blueprint v2: audit, blueprint comparison, decisions, sitemap, page spec, SEO/AEO plan, launch plan |
 | `docs/client-brief/` | The client's original blueprint (PDF) and sitemap notes |
+| `docs/PAGES.md` | Every page with its review link, launch address and what is still outstanding on it (regenerated on each production build) |
+| `SECURITY.md` | Security checklist and launch tasks |
 | `CLAUDE.md` | Project context for Claude Code sessions |
 
 ## Build
