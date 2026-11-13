@@ -388,6 +388,9 @@ footer .social a:hover{background:var(--gold);border-color:var(--gold);color:var
 .wa{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:9;background:#1E8F4E;color:#fff;border-radius:999px;padding:12px 18px;min-height:48px;font-weight:700;text-decoration:none;box-shadow:0 10px 24px -8px rgba(0,0,0,.45);display:flex;gap:8px;align-items:center}
 .wa:hover{color:#fff;background:#18773F}
 @media (max-width:600px),(max-height:520px){.wa{padding:0;width:52px;height:52px;justify-content:center}.wa span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.wa svg{width:26px;height:26px}}
+.consent{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));z-index:12;max-width:min(560px,calc(100vw - 100px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:var(--r);padding:16px 18px;box-shadow:0 18px 40px -16px rgba(0,0,0,.45);font-size:.9rem}
+.consent p{margin:0 0 12px;max-width:none}.consent-btns{display:flex;gap:10px;flex-wrap:wrap}.consent-btns .btn{flex:1 1 120px}
+.cookie-settings{background:none;border:0;padding:0;color:inherit;font:inherit;text-decoration:underline;cursor:pointer}.cookie-settings:hover{color:var(--gold-on-deep)}
 .demo-ribbon{background:var(--soft);color:var(--ink-2);font-size:.85rem;text-align:center;padding:6px 16px;border-bottom:1px solid var(--line)}
 .demo-ribbon a{color:var(--grass)}
 /* short landscape screens (phones held sideways): slimmer header, tighter rhythm */
@@ -511,7 +514,7 @@ def footer(here):
 <div><h2>Resources</h2><ul>{res}</ul></div>
 <div><h2>Follow us</h2><ul class="social">{soc}</ul></div>
 </div>
-<div class="legal"><span>© 2026 {B['name']}. All rights reserved.</span><span>Last updated <time datetime="{UPDATED}">{UPDATED_TEXT}</time></span></div>
+<div class="legal"><span>© 2026 {B['name']}. All rights reserved.</span><span>{'<button type="button" class="cookie-settings">Cookie settings</button> · ' if GA else ''}Last updated <time datetime="{UPDATED}">{UPDATED_TEXT}</time></span></div>
 </div></footer>"""
 
 COMMON_JS = r"""
@@ -519,22 +522,40 @@ COMMON_JS = r"""
 var d=document;
 var b=d.querySelector('.menu-btn'),m=d.getElementById('menu');
 if(b)b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o)});
-window.dataLayer=window.dataLayer||[];
-d.addEventListener('click',function(e){var a=e.target.closest('[data-ev]');if(a)window.dataLayer.push({event:a.getAttribute('data-ev')})});
+function track(n,p){p=p||{};var m=/^(cta|tel|whatsapp|email)_(.+)$/.exec(n);if(m){p.location=m[2];n={cta:'cta_click',tel:'phone_click',whatsapp:'whatsapp_click',email:'email_click'}[m[1]]}if(window.gtag)window.gtag('event',n,p)}
+window.CMA_track=track;
+d.addEventListener('click',function(e){var a=e.target.closest('[data-ev]');if(a)track(a.getAttribute('data-ev'))});
 var KEY='cma_shortlist';
 function get(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(x){return []}}
 function set(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(x){}paint()}
 function paint(){var v=get();d.querySelectorAll('.shortlist').forEach(function(s){s.setAttribute('data-n',v.length);s.querySelector('.sl-count').textContent=v.length});
  d.querySelectorAll('.add').forEach(function(btn){var on=v.indexOf(btn.dataset.v)>-1;btn.setAttribute('aria-pressed',on);btn.textContent=on?'Added':'Add to quote';btn.setAttribute('aria-label',(on?'Remove ':'Add ')+btn.dataset.v+(on?' from':' to')+' your quote')});
  var ev=new CustomEvent('shortlist',{detail:v});d.dispatchEvent(ev);}
-d.addEventListener('click',function(e){var btn=e.target.closest('.add');if(!btn)return;var v=get(),i=v.indexOf(btn.dataset.v);if(i>-1)v.splice(i,1);else{v.push(btn.dataset.v);window.dataLayer.push({event:'venue_add',venue:btn.dataset.v})}set(v)});
+d.addEventListener('click',function(e){var btn=e.target.closest('.add');if(!btn)return;var v=get(),i=v.indexOf(btn.dataset.v);if(i>-1)v.splice(i,1);else{v.push(btn.dataset.v);track('venue_add',{venue:btn.dataset.v})}set(v)});
 window.CMA={get:get,set:set};
 if(d.readyState!=='loading')paint();else d.addEventListener('DOMContentLoaded',paint);
 })();
 """
 
-CSP_BASE = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; "
-            "font-src 'self'; img-src 'self' data:; frame-src https://www.google.com; connect-src 'self'; "
+# Google Analytics 4: production builds only, and only once data.py has a Measurement ID.
+GA = B.get("ga4_id") if PROD else None
+GA_JS = r"""
+(function(){var K='cma_consent',ID='__GA__',d=document,bar=d.getElementById('consent'),yes=d.getElementById('consent-yes');
+function load(){if(window.gtag)return;window.dataLayer=window.dataLayer||[];window.gtag=function(){window.dataLayer.push(arguments)};
+window.gtag('js',new Date());window.gtag('config',ID);var s=d.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+ID;d.head.appendChild(s)}
+function get(){try{return localStorage.getItem(K)}catch(e){return null}}
+function set(v){try{localStorage.setItem(K,v)}catch(e){}bar.hidden=true;window['ga-disable-'+ID]=v!=='granted';if(v==='granted')load()}
+var c=get();if(c==='granted')load();else if(!c)bar.hidden=false;
+yes.addEventListener('click',function(){set('granted')});d.getElementById('consent-no').addEventListener('click',function(){set('denied')});
+d.addEventListener('click',function(e){if(e.target.closest('.cookie-settings')){bar.hidden=false;yes.focus()}});
+})();
+""".replace("__GA__", GA or "")
+_GA_SCRIPT = " https://www.googletagmanager.com" if GA else ""
+_GA_CONNECT = " https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com" if GA else ""
+_GA_IMG = " https://www.google-analytics.com https://www.googletagmanager.com" if GA else ""
+
+CSP_BASE = ("default-src 'self'; script-src 'self' {hashes}" + _GA_SCRIPT + "; style-src 'self' 'unsafe-inline'; "
+            "font-src 'self'; img-src 'self' data:" + _GA_IMG + "; frame-src https://www.google.com; connect-src 'self'" + _GA_CONNECT + "; "
             "object-src 'none'; base-uri 'self'; form-action 'self'")
 SCRIPT_HASHES = set()
 def with_csp(page):
@@ -546,6 +567,15 @@ def with_csp(page):
             hs.append(h)
     SCRIPT_HASHES.update(hs)
     return page.replace("__CSP__", CSP_BASE.format(hashes=" ".join(hs)))
+
+def consent_bar(here):
+    if not GA:
+        return ""
+    return (f'<div class="consent" id="consent" hidden role="region" aria-label="Cookie consent"><p><b>Can we count your visit?</b> We would like to use Google Analytics cookies '
+            f'to see how this site is used and improve it. Nothing is collected unless you accept. <a href="{link("/privacy-policy/", here)}">Privacy policy</a></p>'
+            '<div class="consent-btns"><button type="button" class="btn btn-gold btn-sm" id="consent-yes">Accept</button>'
+            '<button type="button" class="btn btn-line btn-sm" id="consent-no">Decline</button></div></div>'
+            f'<script>{GA_JS}</script>')
 
 def layout(here, title, desc, body, schema, scripts="", og_type="website", noindex=False):
     assets = "/assets/" if PROD else link("/assets/favicon.svg", here)[:-len("favicon.svg")]
@@ -581,6 +611,7 @@ def _layout(here, title, desc, body, schema, scripts="", og_type="website", noin
 {ribbon}
 {header(here)}
 <script>{COMMON_JS}</script>
+{consent_bar(here)}
 <main id="main">
 {body}
 </main>
@@ -1531,16 +1562,16 @@ function summary(){{var l=[];[].forEach.call(f.elements,function(x){{if(!x.name|
 function show(i){{cur=i;steps.forEach(function(s,j){{s.hidden=j!==i}});prog.forEach(function(p,j){{p.className=j<i?'done':(j===i?'on':'')}});
 back.hidden=i===0;var last=i===steps.length-1;next.hidden=last;send.hidden=!last;send.style.display=last?'flex':'';err.textContent='';
 if(last)document.getElementById('review').textContent=summary();if(i===2)picked();var h=steps[i].querySelector('h2');if(h){{h.tabIndex=-1;h.focus()}}
-window.dataLayer.push({{event:'quote_step',step:i+1}});}}
+window.CMA_track('quote_step',{{step:i+1}});}}
 function valid(){{var bad=[].filter.call(steps[cur].querySelectorAll('[required]'),function(x){{return !x.checkValidity()}});
 setMin();if(steps[cur].contains(dt)&&dt.value&&dt.value<dt.min){{err.textContent='That date has already passed. Please choose today or a later date.';dt.focus();return false}}
 if(bad.length){{err.textContent='Please check: '+bad.map(function(x){{return x.name.toLowerCase()}}).join(', ')+'.';bad[0].focus();return false}}return true}}
 next.addEventListener('click',function(){{if(valid())show(cur+1)}});back.addEventListener('click',function(){{show(cur-1)}});
 var sent=document.getElementById('sent');
-function done(){{window.setTimeout(function(){{f.reset();window.CMA.set([]);show(0);f.hidden=true;sent.hidden=false;sent.focus();window.dataLayer.push({{event:'quote_sent'}})}},400)}}
+function done(how){{window.CMA_track('generate_lead',{{method:how,service:f.Service.value}});window.setTimeout(function(){{f.reset();window.CMA.set([]);show(0);f.hidden=true;sent.hidden=false;sent.focus()}},400)}}
 document.getElementById('again').addEventListener('click',function(){{sent.hidden=true;f.hidden=false;show(0)}});
-document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());done();}});
-document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener,noreferrer');done();}});
+document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());done('email');}});
+document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener,noreferrer');done('whatsapp');}});
 document.addEventListener('shortlist',picked);show(0);
 var h1=document.querySelector('h1');if(h1)h1.focus&&false;}})();
 </script>
@@ -1559,6 +1590,13 @@ def thanks(here):
 add("/contact-us/thank-you/", thanks)
 
 def privacy(here):
+    if GA:
+        cookies = ("<p>With your consent, we use Google Analytics 4 to count visits and see which pages and buttons are used, so we can improve the site. "
+                   "It sets cookies in your browser and sends usage data to Google. It does not run unless you choose Accept on the cookie notice, "
+                   'and you can change your choice at any time with the "Cookie settings" link at the bottom of every page.</p>'
+                   "<p>This site also saves your venue shortlist, checklist ticks and cookie choice in your own browser. These stay on your device.</p>")
+    else:
+        cookies = "<p>This site does not use analytics or advertising cookies. It saves your venue shortlist and checklist ticks in your own browser only; these stay on your device.</p>"
     body = f"""
 {crumbs([("Home", "/"), ("Privacy policy", here)], here)}
 <section class="page-head"><div class="wrap prose">
@@ -1571,7 +1609,7 @@ def privacy(here):
 <h2>Who we share it with</h2><p>Venues and transport providers, only as needed to check availability and make your booking.</p>
 <h2>How long we keep it</h2><p>[Retention period to confirm, for example 24 months after your last enquiry.]</p>
 <h2>Your rights</h2><p>You can ask to see, correct or delete your data by emailing us.</p>
-<h2>Cookies and analytics</h2><p>[List the analytics tool used, for example Google Analytics 4, once it is set up.] This site saves your venue shortlist and checklist ticks in your own browser only.</p>
+<h2>Cookies and analytics</h2>{cookies}
 </div></section>"""
     return layout(here, "Privacy Policy | Crown Masters Adventures", "How Crown Masters Adventures collects and uses personal data from enquiries and bookings.", body,
                   ld(crumbs_ld([("Home", "/"), ("Privacy policy", here)])))
@@ -1771,6 +1809,22 @@ These keep links to the old site working. They are in `site/_redirects`, which w
 | `_headers` | Security headers | See `SECURITY.md` |
 | `_redirects` | Old-address redirects | Test each row of the table above |
 | `assets/og-default.jpg` | Image shown when a page is shared on WhatsApp or social media | {'Present' if os.path.exists(os.path.join(PHOTO_DIR, 'og-default.jpg')) else '**Missing.** Supply a 1200 x 630 px image'} |
+
+## Analytics (Google Analytics 4)
+
+Status: {"**switched on** with Measurement ID `" + GA + "`" if GA else "**built but switched off**. No Measurement ID has been added yet, so no analytics code or consent bar is in the pages"}.
+
+To switch it on:
+
+- [ ] Client creates a Google Analytics 4 property for `{DOMAIN.split("//")[1]}` under their own Google account
+- [ ] Put its Measurement ID (looks like `G-AB12CD34EF`) in `data.py` as `ga4_id`, then rebuild with `--production`
+- [ ] On the live site, check the consent bar appears, and that visits show in GA4 "Realtime" only after choosing Accept
+- [ ] In GA4, mark `generate_lead` as a key event (it fires when a quote request is sent)
+- [ ] In GA4, build a funnel from `quote_step` (steps 1 to 4) to `generate_lead` to see where people drop out
+- [ ] Verify the domain in Google Search Console and submit `sitemap.xml`
+- [ ] Have the client's lawyer review the cookie wording in the privacy policy
+
+Events the site sends once analytics is on: `cta_click`, `phone_click`, `whatsapp_click`, `email_click` (each with a `location`), `venue_add`, `quote_step`, `quote_email`, `quote_whatsapp`, `generate_lead`, `google_reviews`, `lead_checklist`. Analytics never runs on the review sandbox.
 
 ## Site-wide items before launch
 

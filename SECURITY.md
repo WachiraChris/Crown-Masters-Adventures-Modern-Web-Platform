@@ -15,7 +15,7 @@ Status of the site against the agreed security checklist. "Done" items are enfor
 
 Done for Cloudflare Pages and Netlify through `site/_headers`: `Strict-Transport-Security`, `Content-Security-Policy`, `X-Frame-Options: DENY` with `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` and cross-origin isolation headers.
 
-Every page also carries its own Content Security Policy in a meta tag. Scripts run only if their SHA-256 hash is listed, so injected scripts are blocked; fonts, styles and images load only from the site itself. The only third-party content is the Google Maps frame on the contact page.
+Every page also carries its own Content Security Policy in a meta tag. Scripts run only if their SHA-256 hash is listed, so injected scripts are blocked; fonts, styles and images load only from the site itself. The only third-party content is the Google Maps frame on the contact page. When a Google Analytics 4 Measurement ID is added (`ga4_id` in `data.py`), the policy also allows Google's analytics hosts, and the analytics script loads only after a visitor accepts the consent bar.
 
 At launch: GitHub Pages and cPanel ignore `_headers`. On those hosts the same headers must be set in the server configuration. Check the live site with securityheaders.com.
 

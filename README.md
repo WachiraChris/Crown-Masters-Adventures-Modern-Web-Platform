@@ -33,6 +33,10 @@ Edit content in `data.py` (venues, regions, phone, email, hours, geo, founding y
 
 Photo slots fill themselves from the `photos/` folder; see `photos/README.md` for the file name each slot expects. Images in `photos/placeholder/` are shown with a "PLACEHOLDER" watermark.
 
+## Analytics
+
+Google Analytics 4 is built in but off. Set `ga4_id` in `data.py` to the client's Measurement ID and rebuild with `--production`: pages then show a consent bar and load analytics only after a visitor accepts. It never runs in demo builds. The events sent and the switch-on steps are in `docs/PAGES.md`.
+
 ## Security
 
 See `SECURITY.md` for the full checklist and what remains for launch. In short: no secrets anywhere, a hash-based Content Security Policy on every page, security headers in `site/_headers`, fonts served from the site itself (no third-party requests except the contact page map), and no server code.

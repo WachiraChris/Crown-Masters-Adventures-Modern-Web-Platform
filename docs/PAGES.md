@@ -104,6 +104,22 @@ These keep links to the old site working. They are in `site/_redirects`, which w
 | `_redirects` | Old-address redirects | Test each row of the table above |
 | `assets/og-default.jpg` | Image shown when a page is shared on WhatsApp or social media | **Missing.** Supply a 1200 x 630 px image |
 
+## Analytics (Google Analytics 4)
+
+Status: **built but switched off**. No Measurement ID has been added yet, so no analytics code or consent bar is in the pages.
+
+To switch it on:
+
+- [ ] Client creates a Google Analytics 4 property for `crownmastersadventures.co.ke` under their own Google account
+- [ ] Put its Measurement ID (looks like `G-AB12CD34EF`) in `data.py` as `ga4_id`, then rebuild with `--production`
+- [ ] On the live site, check the consent bar appears, and that visits show in GA4 "Realtime" only after choosing Accept
+- [ ] In GA4, mark `generate_lead` as a key event (it fires when a quote request is sent)
+- [ ] In GA4, build a funnel from `quote_step` (steps 1 to 4) to `generate_lead` to see where people drop out
+- [ ] Verify the domain in Google Search Console and submit `sitemap.xml`
+- [ ] Have the client's lawyer review the cookie wording in the privacy policy
+
+Events the site sends once analytics is on: `cta_click`, `phone_click`, `whatsapp_click`, `email_click` (each with a `location`), `venue_add`, `quote_step`, `quote_email`, `quote_whatsapp`, `generate_lead`, `google_reviews`, `lead_checklist`. Analytics never runs on the review sandbox.
+
 ## Site-wide items before launch
 
 - [ ] Client has confirmed phone, email, office address and opening hours (`data.py`)

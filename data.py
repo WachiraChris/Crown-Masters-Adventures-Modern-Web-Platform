@@ -18,6 +18,9 @@ BUSINESS = {
     "opening_hours": None,     # e.g. ["Mo-Fr 08:00-17:00", "Sa 09:00-13:00"] once confirmed
     "geo": None,               # e.g. {"lat": -1.26, "lng": 36.81} from the Google Business Profile pin
     "founded": None,           # year the company started
+    # Google Analytics 4 Measurement ID, e.g. "G-AB12CD34EF". Leave as None until the client's GA4 property exists.
+    # When set, production builds add the consent bar and load analytics only after a visitor accepts.
+    "ga4_id": None,
     "events_delivered": "100+", # supplied by the agency on 13 November 2026; the client should confirm the figure before launch
     "whatsapp": "https://wa.me/254706494806",
     # Google Business Profile figures, supplied by the agency on the date below. Re-check before launch.
