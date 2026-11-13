@@ -18,7 +18,25 @@ BUSINESS = {
     "opening_hours": None,     # e.g. ["Mo-Fr 08:00-17:00", "Sa 09:00-13:00"] once confirmed
     "geo": None,               # e.g. {"lat": -1.26, "lng": 36.81} from the Google Business Profile pin
     "founded": None,           # year the company started
+    # Google Analytics 4 Measurement ID, e.g. "G-AB12CD34EF". Leave as None until the client's GA4 property exists.
+    # When set, production builds add the consent bar and load analytics only after a visitor accepts.
+    "ga4_id": None,
+    "events_delivered": "100+", # supplied by the agency on 13 November 2026; the client should confirm the figure before launch
     "whatsapp": "https://wa.me/254706494806",
+    # Google Business Profile figures, supplied by the agency on the date below. Re-check before launch.
+    "google": {"rating": "4.9", "reviews": 18, "as_of": "November 2026",
+               "url": "https://www.google.com/maps/search/?api=1&query=Crown+Masters+Adventures+Park+Place+Parklands+Nairobi"},
+    # Real Google reviews only, copied word for word. Each entry: {"name": "...", "text": "...", "date": "March 2026"}.
+    # Supplied by the agency on 13 November 2026 from the Google Business Profile. "date" is the year, worked out from
+    # Google's "a year ago", "4 years ago" and "7 years ago" on that day.
+    "reviews": [
+        {"name": "Brian Ochieng", "date": "2025",
+         "text": "Crown Masters Adventures offers more than an experience. Outside the top notch professionalism offered by the team, every member has a distinct uniqueness and a particular type of benevolence, that makes you feel like you are part of their family upon interacting with them. Their activities are incredibly fun, their zeal and passion is unmatched and their presentation is a thing to marvel at. If nostalgia is entrenched in your soul and you cherish memories, be sure that any event or activity that is graced by crown Masters Adventures will linger in your memory for a while."},
+        {"name": "Carolyne Mathew", "date": "2022",
+         "text": "Hey crown masters it was pleasure booking our staycation vacation with you..we happy and our expectations were meet..to more adventurous trips and staycations with you..we appreciate everything,,thank you🥰..Sun n sand was the best place to be ..will be revisiting again..thanks Crown masters …"},
+        {"name": "Beatrice Wanjangi", "date": "2019",
+         "text": "Crown masters adventures is surely the best team building company ever they facilitated our company's event and it turned out to be the best ever team building we have ever held,from planning,transport,execution and their services are superbly awesome I highly recommend @crownmastersadventures."},
+    ],
     "social": {
         "Facebook": "https://www.facebook.com/crownmastersadventures",
         "Instagram": "https://www.instagram.com/crownmastersadventures",
@@ -144,3 +162,21 @@ CLIENT_TO_CONFIRM = {
     "ergonomics": "Ergonomics talks and wellness days are proposed in the blueprint.",
     "large": "Events for 1,000+ people are proposed in the blueprint.",
 }
+
+# Clients, read from the client's "Proud to have served" graphic. To confirm with the client: the names,
+# permission to display each brand, and original logo files. A logo file named after the slug in
+# photos/logos/ (svg or png) is shown instead of the name. Best-known names first.
+CLIENTS = [
+    ("Safaricom", "safaricom"), ("KCB", "kcb"), ("Stanbic Bank", "stanbic-bank"), ("Britam", "britam"),
+    ("Jubilee Insurance", "jubilee-insurance"), ("I&M Bank", "i-m-bank"), ("Unilever", "unilever"), ("Jumia", "jumia"),
+    ("The Aga Khan University Hospital", "aga-khan-university-hospital"), ("USAID", "usaid"),
+    ("Communications Authority of Kenya", "communications-authority-of-kenya"), ("Hapag-Lloyd", "hapag-lloyd"),
+    ("Knight Frank", "knight-frank"), ("Médecins Sans Frontières", "medecins-sans-frontieres"), ("RTI International", "rti-international"),
+    ("AAR", "aar"), ("Resolution Insurance", "resolution-insurance"), ("&Beyond", "andbeyond"), ("Amiran", "amiran"),
+    ("Roto Tanks", "roto-tanks"), ("Kenya Methodist University", "kemu"), ("Kijabe Hospital", "kijabe-hospital"),
+    ("Nairobi Adventist Hospital", "nairobi-adventist-hospital"), ("The Hub Karen", "the-hub-karen"), ("Melvins Tea", "melvins-tea"),
+    ("Platinum Credit", "platinum-credit"), ("Open Capital", "open-capital"), ("Freight In Time", "freight-in-time"),
+    ("AHF Kenya", "ahf-kenya"), ("Premier Realty", "premier-realty"), ("Palla Credit", "palla-credit"),
+    ("Imara Asset Management", "imara-asset-management"), ("Joworld", "joworld"), ("Galaxy Pharma", "galaxy-pharma"),
+    ("Broll", "broll"), ("Mogo", "mogo"), ("Masada Hotel", "masada-hotel"), ("Dunhill Consulting", "dunhill-consulting"),
+]

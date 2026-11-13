@@ -1,6 +1,6 @@
 # Crown Masters Adventures — website demo v2
 
-Static site generated from `data.py` by `build.py` (30 pages).
+Static site generated from `data.py` by `build.py` (32 pages).
 
 - Open `index.html` in a browser to review the demo (links work offline).
 - `python3 build.py --production` writes clean URLs (`/venues/`) for deployment.

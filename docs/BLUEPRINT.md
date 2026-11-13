@@ -82,10 +82,10 @@ The client blueprint is the stronger plan; demo v1 was the stronger build.
 
 | Page or template | Target search | Key components | Schema |
 | --- | --- | --- | --- |
-| Home | team building company Kenya | Hero photo, logo bar, stats, 4 services, drive-time chart, booking steps, regions, testimonials, guides, FAQ | LocalBusiness, WebSite, WebPage, FAQPage |
+| Home | team building company Kenya | Hero with a photo slideshow behind the headline (crossfade and slow zoom), stats with trusted-by line, reviews, 4 services, booking steps, regions with travel times, testimonials, guides, FAQ | LocalBusiness, WebSite, WebPage, FAQPage |
 | Team building | corporate team building Kenya | Direct answer, 4 formats, group-size tabs, sample agenda, inclusions, gallery, FAQ | Service, Breadcrumb, FAQPage |
 | Sub-services (4) | indoor / outdoor / virtual team building; group transport | Answer, when to choose, activities, needs, FAQ, region links | Service, Breadcrumb, FAQPage |
-| Venues | team building venues Kenya | Drive-time chart, sticky finder, 123 cards with add-to-quote, live count | CollectionPage, ItemList, Breadcrumb, FAQPage |
+| Venues | team building venues Kenya | Collapsed travel-time list, sticky finder, 123 cards with add-to-quote, live count | CollectionPage, ItemList, Breadcrumb, FAQPage |
 | Region pages (10) | team building venues in [region] | Answer with travel time, tags, venues, best for, tips, 4 FAQs, other regions | CollectionPage, ItemList, Breadcrumb, FAQPage |
 | Venue profile template | [venue] team building | Gallery, at-a-glance table, add to quote (noindex) | Place once real |
 | Corporate fitness | corporate fitness Nairobi | Answer, 6 sessions, benefits, 4 steps, booking form, FAQ | Service + OfferCatalog |
