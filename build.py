@@ -741,7 +741,7 @@ def home(here):
 <div class="stats" style="margin-top:0">
 <div class="stat"><b>{TOTAL}</b>venues in {len(REGIONS)} regions</div>
 <div class="stat"><b>3</b>countries: Kenya, Tanzania, Uganda</div>
-<div class="stat"><b><span class="tbc">to supply</span></b>events delivered</div>
+<div class="stat"><b>{B['events_delivered'] or '<span class="tbc">to supply</span>'}</b>events delivered</div>
 <div class="stat"><b>{G['rating']}</b>Google rating from {G['reviews']} reviews</div>
 </div>
 </div></section>

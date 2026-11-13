@@ -18,6 +18,7 @@ BUSINESS = {
     "opening_hours": None,     # e.g. ["Mo-Fr 08:00-17:00", "Sa 09:00-13:00"] once confirmed
     "geo": None,               # e.g. {"lat": -1.26, "lng": 36.81} from the Google Business Profile pin
     "founded": None,           # year the company started
+    "events_delivered": "100+", # supplied by the agency on 13 November 2026; the client should confirm the figure before launch
     "whatsapp": "https://wa.me/254706494806",
     # Google Business Profile figures, supplied by the agency on the date below. Re-check before launch.
     "google": {"rating": "4.9", "reviews": 18, "as_of": "November 2026",
