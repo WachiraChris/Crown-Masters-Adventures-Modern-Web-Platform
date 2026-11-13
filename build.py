@@ -379,7 +379,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--grass);outline:none;b
 .progress li{flex:1;font-size:.8rem;font-weight:700;letter-spacing:.04em;color:var(--ink-2);border-top:3px solid var(--line);padding-top:8px}
 .progress li.on{color:var(--ink);border-color:var(--gold)}
 .progress li.done{border-color:var(--grass)}
-.wstep[hidden]{display:none}
+.wstep[hidden]{display:none}.wstep h2:focus,.sent:focus{outline:none}
 .wnav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
 .review{background:var(--soft);border-radius:12px;padding:16px;white-space:pre-wrap;font:inherit;font-size:.95rem;margin:0}
 .picked{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
@@ -1609,7 +1609,7 @@ function nice(v){{var p=v.split('-');if(p.length!==3)return v;return new Date(+p
 function summary(){{var l=[];[].forEach.call(f.elements,function(x){{if(!x.name||!x.value)return;if((x.type==='radio'||x.type==='checkbox')&&!x.checked)return;l.push(x.name+': '+(x.type==='date'?nice(x.value):x.value))}});var v=window.CMA.get();if(v.length)l.push('Shortlisted venues: '+v.join(', '));return l.join('\\n');}}
 function show(i){{cur=i;steps.forEach(function(s,j){{s.hidden=j!==i}});prog.forEach(function(p,j){{p.className=j<i?'done':(j===i?'on':'')}});
 back.hidden=i===0;var last=i===steps.length-1;next.hidden=last;send.hidden=!last;send.style.display=last?'flex':'';err.textContent='';
-if(last)document.getElementById('review').textContent=summary();if(i===2)picked();var h=steps[i].querySelector('h2');if(h){{h.tabIndex=-1;h.focus()}}
+if(last)document.getElementById('review').textContent=summary();if(i===2)picked();var h=steps[i].querySelector('h2');if(h&&ready){{h.tabIndex=-1;h.focus()}}
 window.CMA_track('quote_step',{{step:i+1}});}}
 function valid(){{var bad=[].filter.call(steps[cur].querySelectorAll('[required]'),function(x){{return !x.checkValidity()}});
 setMin();if(steps[cur].contains(dt)&&dt.value&&dt.value<dt.min){{err.textContent='That date has already passed. Please choose today or a later date.';dt.focus();return false}}
@@ -1620,7 +1620,7 @@ function done(how){{window.CMA_track('generate_lead',{{method:how,service:f.Serv
 document.getElementById('again').addEventListener('click',function(){{sent.hidden=true;f.hidden=false;show(0)}});
 document.getElementById('send-email').addEventListener('click',function(){{location.href='mailto:{B['email']}?subject='+encodeURIComponent('Quote request – '+f.Company.value)+'&body='+encodeURIComponent(summary());done('email');}});
 document.getElementById('send-wa').addEventListener('click',function(){{window.open('{B['whatsapp']}?text='+encodeURIComponent('Quote request\\n'+summary()),'_blank','noopener,noreferrer');done('whatsapp');}});
-document.addEventListener('shortlist',picked);show(0);
+document.addEventListener('shortlist',picked);var ready=false;show(0);ready=true;
 var h1=document.querySelector('h1');if(h1)h1.focus&&false;}})();
 </script>
 """
