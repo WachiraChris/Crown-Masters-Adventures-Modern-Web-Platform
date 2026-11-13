@@ -44,7 +44,7 @@ Fonts do not load when a page is opened straight from disk (`file://`), because 
 
 ## Pages
 
-Home · Team building (+ indoor, outdoor and adventure, virtual and hybrid, transport and logistics) · Venues (+ 10 region pages, venue profile template) · Corporate fitness (+ wellness days) · Guides (4 articles) · Planning checklist and budget planner · About · Contact (4-step quote engine) · Thank you · Privacy policy · 404
+Home · Team building (+ indoor, outdoor and adventure, virtual and hybrid, transport and logistics) · Venues (+ 10 region pages, venue profile template) · Corporate fitness (+ wellness days) · Guides (4 articles) · Private events · Planning checklist and budget planner · About · Contact (4-step quote engine) · Thank you · Privacy policy · 404
 
 Plus `sitemap.xml`, `robots.txt` (AI crawlers allowed), `llms.txt` and `_redirects`.
 

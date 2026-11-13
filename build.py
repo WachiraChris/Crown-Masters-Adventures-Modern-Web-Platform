@@ -496,7 +496,7 @@ def footer(here):
     svc = "".join(f'<li><a href="{link(p, here)}">{E(n)}</a></li>' for p, n in [
         ("/team-building/", "Team building events"), ("/team-building/outdoor-adventure/", "Outdoor and adventure"),
         ("/team-building/indoor/", "Indoor team building"), ("/team-building/transport-logistics/", "Transport and logistics"),
-        ("/corporate-fitness/", "Corporate fitness"), ("/corporate-fitness/wellness-days/", "Wellness days")])
+        ("/corporate-fitness/", "Corporate fitness"), ("/corporate-fitness/wellness-days/", "Wellness days"), ("/private-events/", "Private events")])
     res = "".join(f'<li><a href="{link(p, here)}">{E(n)}</a></li>' for p, n in [
         ("/blog/", "Planning guides"), ("/planning-checklist/", "Checklist and budget planner"), ("/about-us/", "About us"),
         ("/contact-us/", "Contact"), ("/privacy-policy/", "Privacy policy")])
@@ -752,7 +752,7 @@ def home(here):
 
 <section><div class="wrap">
 <h2>What we do</h2>
-<p class="muted">Four services that work together, so one call covers the whole event.</p>
+<p class="muted">Four services that work together, so one call covers the whole event. We also plan <a href="{link('/private-events/', here)}">private events</a> such as baby showers, graduations and birthdays.</p>
 <div class="grid4" style="margin-top:24px">{svc}</div>
 </div></section>
 
@@ -897,10 +897,11 @@ tabs.forEach(function(t,i){{t.addEventListener('click',function(){{sel(t)}});t.a
                   body, schema)
 add("/team-building/", team_building)
 
-def sub_page(here, h1, title, desc, answer, sections, faqs, photo_caption, flag=None, stype=None):
+def sub_page(here, h1, title, desc, answer, sections, faqs, photo_caption, flag=None, stype=None, parent=("Team building", "/team-building/")):
+    trail = [("Home", "/")] + ([parent] if parent else []) + [(h1, here)]
     secs = "".join(f'<section class="{"band" if i % 2 == 0 else ""}"><div class="wrap grid2"><div><h2>{E(h)}</h2>{intro}</div><div>{content}</div></div></section>' for i, (h, intro, content) in enumerate(sections))
     body = f"""
-{crumbs([("Home", "/"), ("Team building", "/team-building/"), (h1, here)], here)}
+{crumbs(trail, here)}
 <section class="page-head"><div class="wrap split">
 <div><h1>{E(h1)}</h1>{confirm(flag) if flag else ""}
 <div class="answer"><p>{answer}</p></div>
@@ -911,8 +912,22 @@ def sub_page(here, h1, title, desc, answer, sections, faqs, photo_caption, flag=
 {faq_block(faqs)}
 {cta(here)}
 """
-    schema = ld(service_ld(here, h1, stype or h1, desc), crumbs_ld([("Home", "/"), ("Team building", "/team-building/"), (h1, here)]), faq_ld(faqs, here))
+    schema = ld(service_ld(here, h1, stype or h1, desc), crumbs_ld(trail), faq_ld(faqs, here))
     return layout(here, title, desc, body, schema)
+
+add("/private-events/", lambda here: sub_page(here, "Private events",
+    "Private Events: Baby Showers, Graduations | Crown Masters",
+    "Crown Masters Adventures also plans private events in Kenya, including baby showers, graduation parties and birthdays, with a venue, group games and transport.",
+    "Alongside corporate work, Crown Masters Adventures plans non-corporate events such as baby showers, graduation parties and birthdays. We help you choose a venue, run games and activities for your guests, and arrange group transport if you need it.",
+    [("Occasions we plan", "<p>Family and social events, for small or large groups.</p>",
+      ul(["Baby showers", "Graduation parties", "Birthdays", "Other family and social gatherings on request"])),
+     ("How we help", "<p>The same planning we do for companies, sized for a private occasion.</p>",
+      ul(["A venue that suits your guest list and budget", "Games and activities led by our facilitators", "Group transport for your guests, if needed", "One contact person from first call to the day itself"]))],
+    [("Do you only work with companies?", "No. Most of our work is corporate team building, but we also plan private events such as baby showers, graduation parties and birthdays."),
+     ("How do we get a price for a private event?", f"Send us the occasion, the number of guests, your date and your budget. Request a quote online, or call or WhatsApp {B['phone_display']}.")],
+    "a decorated venue set up for a private celebration",
+    flag="Taken from the WhatsApp catalogue item 'Non corporate events (baby showers, graduation, birth...)'. Confirm the full list of occasions and what the service includes (for example decor or catering) before launch.",
+    stype="Private event planning", parent=None))
 
 def ul(items):
     return "<ul style='line-height:1.9;margin:0'>" + "".join(f"<li>{i}</li>" for i in items) + "</ul>"
@@ -964,13 +979,14 @@ add("/team-building/virtual-hybrid/", lambda here: sub_page(here, "Virtual and h
 
 add("/team-building/transport-logistics/", lambda here: sub_page(here, "Transport and logistics",
     "Group Transport for Corporate Events | Crown Masters",
-    "Executive transport hire for team building and corporate events in Kenya: coaches and shuttles from your office to the venue and back, on a timed schedule.",
+    "Executive transport hire for team building and corporate events in Kenya: Coaster buses with 22 to 33 seats from your office to the venue and back, on schedule.",
     "We arrange executive transport for team building and corporate events, so your whole group travels together from the office to the venue and back on a schedule agreed in advance. Transport can be booked with an event or on its own.",
     [("What we arrange", "<p>Vehicles sized to your headcount and route.</p>",
-      ul(["Executive vans and minibuses for smaller groups", "Coaches for large groups", "Pick-ups from one or several office locations", "Airport and SGR station transfers for coast and cross-border trips"])),
+      ul(["Coaster buses with 22, 28, 30, 31 and 33 seats", "Executive vans and minibuses for smaller groups", "Coaches for large groups", "Pick-ups from one or several office locations", "Airport and SGR station transfers for coast and cross-border trips"])),
      ("How it runs on the day", "<p>Everything is timed against the programme.</p>",
       ul(["A departure plan shared with your team the week before", "One contact person for drivers and staff", "Return timings agreed before the event"]))],
-    [("Can we book transport without a team building event?", "Yes. Executive transport hire is available on its own for corporate trips and events."),
+    [("What size buses can we hire?", "Our executive transport includes Coaster buses with 22, 28, 30, 31 and 33 seats. Tell us your headcount and route and we match the vehicles to the group."),
+     ("Can we book transport without a team building event?", "Yes. Executive transport hire is available on its own for corporate trips and events."),
      ("Do you arrange travel to the coast?", "Yes. For Mombasa and Diani we plan around flights or the SGR train, with road transfers at each end.")],
     "a coach loading a team outside an office",
     flag="The blueprint adds overland trucks and SGR coordination. Confirm which vehicle types the client provides before launch.", stype="Group transport"))
@@ -999,6 +1015,7 @@ def venues(here):
     faqs = [("Which are the best team building venues near Nairobi?", "For a one-day event, common choices within about two hours of Nairobi include Lukenya Getaway, Maanzoni Lodge, Brackenhurst Hotel, Fred's Ranch in Kitengela, and gardens such as Stedmark and Zen Gardens. The best one depends on group size, budget and the activities you want."),
             ("Where should we go for a two-day team building retreat?", "Naivasha, Elementaita and Nanyuki are the usual choices for overnight retreats. They are a few hours from Nairobi and have resorts with space for group activities."),
             ("Which venues are best for adventure activities?", "Sagana, at venues such as Rapids Camp, Savage Wilderness and Sagana Getaway, is known for white-water rafting and river activities."),
+            ("Do you run team building in Amboseli?", "Yes. We facilitate team building in Amboseli. Venues there are booked on request, so send us your dates and group size and we will suggest options."),
             ("Can you book a venue that is not on this list?", "Yes. The list covers the venues we use most, and we can book others on request.")]
     body = f"""
 {crumbs([("Home", "/"), ("Venues", here)], here)}
@@ -1018,7 +1035,7 @@ def venues(here):
 </div></div>
 <div class="wrap">{''.join(blocks)}
 <p class="empty" id="empty">No venues match those filters. Clear the search, or <a href="{link('/contact-us/#quote', here)}">tell us what you need</a> and we'll suggest options, including venues not listed here.</p>
-<section class="tight">{confirm(f"Capacity, amenities and photos are not yet recorded for each venue. A sample <a href='{link('/venues/profile-template/', here)}'>venue profile page</a> shows the layout each venue will get.")}</section>
+<section class="tight">{confirm(f"Capacity, amenities and photos are not yet recorded for each venue. Amboseli appears in the WhatsApp catalogue but has no venues listed here yet: supply the venues used there to add it as a region. A sample <a href='{link('/venues/profile-template/', here)}'>venue profile page</a> shows the layout each venue will get.")}</section>
 </div>
 {faq_block(faqs, "Choosing a venue")}
 {cta(here, "Not sure which venue fits?", "Send your group size, dates and budget. We come back with three venue options and a quote.")}
@@ -1449,7 +1466,7 @@ def contact(here):
 <fieldset class="wstep" data-step="1" hidden style="border:0;padding:0;margin:0"><legend class="sr">Your event</legend>
 <h2 style="font-size:1.4rem">Your event</h2>
 <div class="fgrid2">
-<div class="full"><label for="q-svc">What do you need?</label><select id="q-svc" name="Service"><option>Team building event</option><option>Venue booking only</option><option>Corporate fitness</option><option>Transport hire</option><option>Getaway or expedition</option></select></div>
+<div class="full"><label for="q-svc">What do you need?</label><select id="q-svc" name="Service"><option>Team building event</option><option>Venue booking only</option><option>Corporate fitness</option><option>Transport hire</option><option>Getaway or expedition</option><option>Private event (baby shower, graduation, birthday)</option></select></div>
 <div><label for="q-n">Group size</label><input id="q-n" name="Group size" type="number" min="1" max="5000" required inputmode="numeric"></div>
 <div><label for="q-d">Preferred date</label><input id="q-d" name="Preferred date" type="date" required><label class="chk" for="q-flex"><input id="q-flex" type="checkbox" name="Dates flexible" value="Yes">My dates are flexible</label></div>
 <div class="full"><span style="display:block;font-weight:700;margin-bottom:6px">Duration</span><div class="radio-cards" role="radiogroup">
@@ -1642,7 +1659,8 @@ Sitemap: {DOMAIN}/sitemap.xml
 - [Corporate team building]({DOMAIN}/team-building/): facilitated events for teams of all sizes, with venue, transport and meals arranged
 - [Indoor team building]({DOMAIN}/team-building/indoor/): problem-solving and communication challenges in a hall or boardroom
 - [Outdoor and adventure]({DOMAIN}/team-building/outdoor-adventure/): obstacle courses, treasure hunts, rafting at Sagana, cycling at Hell's Gate
-- [Transport and logistics]({DOMAIN}/team-building/transport-logistics/): executive transport hire for groups
+- [Transport and logistics]({DOMAIN}/team-building/transport-logistics/): executive transport hire for groups, including Coaster buses with 22 to 33 seats
+- [Private events]({DOMAIN}/private-events/): baby showers, graduation parties and birthdays, with venue, games and transport
 - [Corporate fitness]({DOMAIN}/corporate-fitness/): Zumba, aerobics, calisthenics, HIIT, interval and circuit training at clients' offices, with fitness tests and nutrition guidance
 
 ## Venue regions
