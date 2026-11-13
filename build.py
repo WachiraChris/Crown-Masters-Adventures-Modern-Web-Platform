@@ -151,6 +151,7 @@ header.site :focus-visible,footer :focus-visible,.hero :focus-visible,.cta :focu
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;min-height:48px;border-radius:8px;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;text-decoration:none;border:1.5px solid transparent;cursor:pointer;line-height:1.2;transition:background-color .18s,color .18s,border-color .18s,transform .18s,box-shadow .18s}
 .btn-gold{background:var(--gold);color:var(--on-gold);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 8px 20px -10px color-mix(in srgb,var(--gold) 80%,transparent)}.btn-gold:hover{filter:brightness(1.07);color:var(--on-gold);transform:translateY(-1px)}
+.btn-wa{background:#25D366;color:#06240F;border-color:#25D366}.btn-wa:hover{background:#1FBF5B;border-color:#1FBF5B;color:#06240F;transform:translateY(-1px)}
 .btn-line{border-color:color-mix(in srgb,currentColor 55%,transparent);color:var(--ink);background:transparent}.btn-line:hover{border-color:currentColor}
 .btn-sm{padding:8px 16px;min-height:40px;font-size:.92rem}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
@@ -640,7 +641,7 @@ def faq_block(faqs, heading="Frequently asked questions", sub="Straight answers 
 def cta(here, title="Planning a team event?", text="Send your group size, dates and budget. We reply with venue options and a quote."):
     return (f'<section class="tight"><div class="wrap"><div class="cta"><div><h2>{E(title)}</h2><p>{E(text)}</p></div>'
             f'<div class="actions" style="margin:0"><a class="btn btn-gold" href="{link("/contact-us/#quote", here)}" data-ev="cta_band">Request a quote</a>'
-            f'<a class="btn btn-line" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener noreferrer" data-ev="whatsapp_band">WhatsApp us</a></div></div></div></section>')
+            f'<a class="btn btn-wa" href="{B["whatsapp"]}?text=Hi%20Crown%20Masters%2C%20I%27d%20like%20a%20team%20building%20quote." rel="noopener noreferrer" data-ev="whatsapp_band">{WA_ICON}WhatsApp us</a></div></div></div></section>')
 
 def drive_chart(here, regions=REGIONS, title="How far each region is from Nairobi"):
     # Collapsed travel-time list: one line when closed, readable on phones when open.
