@@ -242,6 +242,15 @@ figure{margin:0}
 .in-short{margin:10px 0 0;max-width:86ch;font-size:.92rem;color:var(--ink-2)}
 .cta-slim{display:flex;align-items:center;justify-content:space-between;gap:16px 28px;flex-wrap:wrap;margin-top:clamp(28px,4vw,44px);padding:20px 0;border-block:1px solid var(--line)}.cta-slim p{margin:0;max-width:60ch}
 #clients{scroll-margin-top:calc(var(--hdr) + 16px)}
+/* region carousel: three cards in view, arrows either side, swipe on touch */
+.rcar{position:relative;margin-top:20px}
+.rcar-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 48px)/3);gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:6px 2px 22px;overscroll-behavior-x:contain}
+.rcar-track::-webkit-scrollbar{display:none}.rcar-track>.card{scroll-snap-align:start}
+.rcar-btn{position:absolute;top:calc(50% - 30px);z-index:2;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--deep);color:var(--gold-on-deep);border:1px solid color-mix(in srgb,var(--gold-on-deep) 50%,transparent);box-shadow:0 8px 20px -8px rgba(0,0,0,.45);cursor:pointer;transition:opacity .2s,transform .2s,background-color .2s}
+.rcar-btn.prev{left:-23px}.rcar-btn.next{right:-23px}.rcar-btn:hover:not([disabled]){background:var(--gold);color:var(--on-gold);transform:scale(1.06)}
+.rcar-btn[disabled]{opacity:0;pointer-events:none}
+@media (max-width:960px){.rcar-track{grid-auto-columns:calc((100% - 24px)/2)}}
+@media (max-width:640px){.rcar-track{grid-auto-columns:84%;gap:14px}.rcar-btn.prev{left:-8px}.rcar-btn.next{right:-8px}}
 /* client strip: one row, slow loop, uniform cells */
 .cl-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.cl-head .eyebrow{margin:0}
 .cl-pause{background:none;border:1px solid var(--line);border-radius:8px;padding:4px 12px;min-height:32px;color:var(--ink-2);font:700 .78rem "Plus Jakarta Sans",sans-serif;letter-spacing:.06em;cursor:pointer}
@@ -691,6 +700,13 @@ FAQ_HOME = [
 
 STAR = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"/></svg>'
 
+RC_JS = r"""
+(function(){var d=document,c=d.querySelector('.rcar');if(!c)return;var t=c.querySelector('.rcar-track'),p=c.querySelector('.prev'),n=c.querySelector('.next');
+function upd(){p.disabled=t.scrollLeft<=2;n.disabled=t.scrollLeft+t.clientWidth>=t.scrollWidth-2}
+function go(dir){var card=t.firstElementChild,step=card?card.getBoundingClientRect().width+24:t.clientWidth,per=Math.max(1,Math.round(t.clientWidth/step));
+t.scrollBy({left:dir*step*per,behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
+p.addEventListener('click',function(){go(-1)});n.addEventListener('click',function(){go(1)});t.addEventListener('scroll',upd,{passive:true});window.addEventListener('resize',upd);upd();})();
+"""
 RV_JS = r"""
 (function(){var d=document;[].forEach.call(d.querySelectorAll('.quote-card'),function(c){var q=c.querySelector('blockquote'),b=c.querySelector('.rv-more');if(!q||!b)return;
 q.classList.add('clamp');if(q.scrollHeight<=q.clientHeight+2){q.classList.remove('clamp');return}
@@ -771,8 +787,8 @@ def home(here):
     ]
     services.append(("heart", "/private-events/", "Private events", ""))
     svc = "".join(f'<div class="card link tile"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><span class="tile-go" aria-hidden="true">→</span></div>' for i, p, t, d in services)
-    feat = REGIONS[:3]
-    regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
+    feat = REGIONS
+    regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0].rstrip("."))}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES[:3])
     if B["reviews"]:
         reviews = '<div class="grid3" style="margin-top:20px;align-items:start">' + "".join(
@@ -828,7 +844,11 @@ def home(here):
 <div class="region-head"><div><h2>Choose a region by how far you want to travel</h2>
 <p>Most one-day events stay within two hours of Nairobi. Overnight retreats usually head to the Rift Valley lakes or Mount Kenya, and reward trips to the coast.</p></div>
 <a class="btn btn-line" href="{link('/venues/', here)}">See all {len(REGIONS)} regions</a></div>
-<div class="grid3" style="margin-top:24px">{regcards}</div>
+<div class="rcar">
+<button type="button" class="rcar-btn prev" aria-label="Previous regions" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+<div class="rcar-track" tabindex="0" role="group" aria-label="Venue regions, scroll sideways for more">{regcards}</div>
+<button type="button" class="rcar-btn next" aria-label="More regions"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+</div>
 </div></section>
 
 {faq_block(FAQ_HOME)}
@@ -848,7 +868,7 @@ def home(here):
     schema = ld(page_ld("/", "Corporate team building in Kenya"), faq_ld(FAQ_HOME, "/"))
     return layout(here, "Corporate Team Building in Kenya | Crown Masters Adventures",
                   f"Nairobi team building company. We plan and facilitate corporate team building, book {TOTAL} venues across Kenya, Tanzania and Uganda, and run office fitness.",
-                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{CL_JS}</script><script>{RV_JS}</script>")
+                  body, schema, scripts=f"<script>{HERO_JS}</script><script>{CL_JS}</script><script>{RV_JS}</script><script>{RC_JS}</script>")
 add("/", home)
 
 # ---------------- team building pillar
