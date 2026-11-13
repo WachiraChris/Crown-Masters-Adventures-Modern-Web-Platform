@@ -232,6 +232,10 @@ figure{margin:0}
 .card h3 a{color:var(--ink);text-decoration:none}.card h3 a::after{content:"";position:absolute;inset:0}
 .card.link{position:relative}.card.link:hover{border-color:var(--gold);transform:translateY(-3px)}
 .card .meta{margin-top:auto;padding-top:12px;font-size:.92rem;color:var(--ink-2)}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:20px}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:400px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.card.tile{flex-direction:row;align-items:center;gap:12px;padding:16px 18px}.card.tile .icon{width:40px;height:40px;margin:0;flex:none}
+.card.tile h3{margin:0;font-size:1.02rem;line-height:1.25;flex:1}.tile-go{color:var(--gold-ink);font-size:1.1rem;transition:transform .2s}.card.tile:hover .tile-go{transform:translateX(3px)}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
 .trusted{margin:26px 0 0;max-width:none;font-size:.95rem;color:var(--ink-2)}.trusted b{color:var(--ink);font-weight:700}
@@ -760,7 +764,8 @@ def home(here):
         ("fit", "/corporate-fitness/", "Corporate fitness", "Trainers come to your office with Zumba, aerobics, circuits and more, plus fitness testing and nutrition guidance."),
         ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Executive transport hire to get your group to the venue and home again, on schedule."),
     ]
-    svc = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in services)
+    services.append(("heart", "/private-events/", "Private events", ""))
+    svc = "".join(f'<div class="card link tile"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><span class="tile-go" aria-hidden="true">→</span></div>' for i, p, t, d in services)
     feat = REGIONS[:3]
     regcards = "".join(f'<div class="card link"><h3><a href="{link("/venues/" + r["slug"] + "/", here)}">{E(r["short"])}</a></h3><p>{E(r["setting"])}. {E(r["best"].split(",")[0])}.</p><p class="meta">{r["count"]} venues · {E(r["travel"])}</p></div>' for r in feat)
     guides = "".join(f'<div class="card link"><h3><a href="{link(p, here)}">{E(t)}</a></h3><p>{E(d)}</p><p class="meta">Guide</p></div>' for p, t, d, _ in ARTICLES[:3])
@@ -799,8 +804,7 @@ def home(here):
 
 <section class="band"><div class="wrap">
 <h2>What we do</h2>
-<p class="muted">Four services that work together, so one call covers the whole event. We also plan <a href="{link('/private-events/', here)}">private events</a> such as baby showers, graduations and birthdays.</p>
-<div class="grid4" style="margin-top:24px">{svc}</div>
+<div class="tiles">{svc}</div>
 </div></section>
 
 <section><div class="wrap">
