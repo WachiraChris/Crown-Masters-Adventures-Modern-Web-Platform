@@ -236,6 +236,11 @@ figure{margin:0}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:700px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:400px){.tiles{grid-template-columns:minmax(0,1fr)}}
 .card.tile{flex-direction:row;align-items:center;gap:12px;padding:16px 18px}.card.tile .icon{width:40px;height:40px;margin:0;flex:none}
 .card.tile h3{margin:0;line-height:1.25;flex:1}.tile-go{color:var(--gold-ink);font-size:1.1rem;transition:transform .2s}.card.tile:hover .tile-go{transform:translateX(3px)}
+/* team profiles: lift and grow slightly on hover */
+.card.member{transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,border-color .35s;will-change:transform}
+.card.member .ph{transition:transform .5s cubic-bezier(.2,.7,.2,1)}.card.member .ph img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+@media (hover:hover){.card.member:hover{transform:translateY(-8px) scale(1.035);border-color:var(--gold);box-shadow:0 24px 44px -20px rgba(16,24,40,.38);z-index:1}
+.card.member:hover .ph img{transform:scale(1.06)}.card.member:hover h3{color:var(--gold-ink)}}
 .icon{width:48px;height:48px;border-radius:10px;background:var(--deep);display:grid;place-items:center;margin-bottom:20px;color:var(--gold-on-deep)}
 /* trust */
 .trusted{margin:26px 0 0;max-width:none;font-size:.95rem;color:var(--ink-2)}.trusted b{color:var(--ink);font-weight:700}
@@ -910,7 +915,7 @@ def team_building(here):
                ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Coaches and timings that get everyone there and back.")]
     fh = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in formats)
     tabs = "".join(f'<button role="tab" id="tab-{k}" aria-controls="panel-{k}" aria-selected="{"true" if j == 0 else "false"}" tabindex="{0 if j == 0 else -1}">{E(n)} people</button>' for j, (k, n, *_ ) in enumerate(GROUPS))
-    panels = "".join(f'<div role="tabpanel" id="panel-{k}" aria-labelledby="tab-{k}" {"" if j == 0 else "hidden"}><dl><dt>Typical teams</dt><dd>{E(who)}</dd><dt>Format</dt><dd>{E(fmt)}</dd><dt>Where</dt><dd>{E(where)}</dd><dt>Transport</dt><dd>{E(tr)}</dd><dt>Length</dt><dd>{E(ln)}</dd></dl>{confirm("Events for 1,000+ people appear in the blueprint. Add a 1,000+ tier only once the client confirms they have delivered one.") if k == "xl" else ""}</div>' for j, (k, n, who, fmt, where, tr, ln) in enumerate(GROUPS))
+    panels = "".join(f'<div role="tabpanel" id="panel-{k}" aria-labelledby="tab-{k}" {"" if j == 0 else "hidden"}><dl><dt>Typical teams</dt><dd>{E(who)}</dd><dt>Format</dt><dd>{E(fmt)}</dd><dt>Where</dt><dd>{E(where)}</dd><dt>Transport</dt><dd>{E(tr)}</dd><dt>Length</dt><dd>{E(ln)}</dd></dl></div>' for j, (k, n, who, fmt, where, tr, ln) in enumerate(GROUPS))
     body = f"""
 {crumbs([("Home", "/"), ("Team building", here)], here)}
 <section class="page-head"><div class="wrap split">
@@ -1507,7 +1512,7 @@ def about(here):
 </div></section>
 <section><div class="wrap">
 <h2>Our team</h2>
-<div class="grid4" style="margin-top:24px">{''.join(f'<div class="card">{photo("team member portrait", "tall")}<h3 style="margin-top:12px">[Name]</h3><p class="muted">[Role] · [one line of experience]</p></div>' for _ in range(4))}</div>
+<div class="grid4" style="margin-top:24px">{''.join(f'<div class="card member">{photo("team member portrait", "tall")}<h3 style="margin-top:12px">[Name]</h3><p class="muted">[Role] · [one line of experience]</p></div>' for _ in range(4))}</div>
 </div></section>
 {cta(here)}
 """
