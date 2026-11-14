@@ -910,7 +910,7 @@ def team_building(here):
                ("bus", "/team-building/transport-logistics/", "Transport and logistics", "Coaches and timings that get everyone there and back.")]
     fh = "".join(f'<div class="card link"><div class="icon">{ICONS[i]}</div><h3><a href="{link(p, here)}">{t}</a></h3><p>{d}</p></div>' for i, p, t, d in formats)
     tabs = "".join(f'<button role="tab" id="tab-{k}" aria-controls="panel-{k}" aria-selected="{"true" if j == 0 else "false"}" tabindex="{0 if j == 0 else -1}">{E(n)} people</button>' for j, (k, n, *_ ) in enumerate(GROUPS))
-    panels = "".join(f'<div role="tabpanel" id="panel-{k}" aria-labelledby="tab-{k}" {"" if j == 0 else "hidden"}><dl><dt>Typical teams</dt><dd>{E(who)}</dd><dt>Format</dt><dd>{E(fmt)}</dd><dt>Where</dt><dd>{E(where)}</dd><dt>Transport</dt><dd>{E(tr)}</dd><dt>Length</dt><dd>{E(ln)}</dd></dl>{confirm("Events for 1,000+ people appear in the blueprint. Add a 1,000+ tier only once the client confirms they have delivered one.") if k == "xl" else ""}</div>' for j, (k, n, who, fmt, where, tr, ln) in enumerate(GROUPS))
+    panels = "".join(f'<div role="tabpanel" id="panel-{k}" aria-labelledby="tab-{k}" {"" if j == 0 else "hidden"}><dl><dt>Typical teams</dt><dd>{E(who)}</dd><dt>Format</dt><dd>{E(fmt)}</dd><dt>Where</dt><dd>{E(where)}</dd><dt>Transport</dt><dd>{E(tr)}</dd><dt>Length</dt><dd>{E(ln)}</dd></dl></div>' for j, (k, n, who, fmt, where, tr, ln) in enumerate(GROUPS))
     body = f"""
 {crumbs([("Home", "/"), ("Team building", here)], here)}
 <section class="page-head"><div class="wrap split">
