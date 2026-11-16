@@ -80,8 +80,8 @@ def page_ld(path, name, typ="WebPage"):
 
 # ------------------------------------------------------------------ design
 # ------------------------------------------------------------------ themes
-# Three premium palettes. Emerald is the default; preview another with
-#   python3 build.py --theme=navy      (or --theme=savanna)
+# Three premium palettes. Navy is the default; preview another with
+#   python3 build.py --theme=emerald   (or --theme=savanna)
 # Token order: ink, ink-2, paper, card, line, soft, gold (accent), on-gold, gold-ink (accent as text),
 # grass (links / secondary), grass-2 (tint), deep (dark bands, header, footer), deep-2, on-deep, gold-on-deep
 _T = "ink ink-2 paper card line soft gold on-gold gold-ink grass grass-2 deep deep-2 on-deep gold-on-deep".split()
@@ -96,7 +96,7 @@ THEMES = {
         "light": "#1E1B18 #5A534C #F8F3EC #FFFFFF #E3D9CB #F1E9DD #B5522D #FFFFFF #8E3D1E #46522A #ECEEDD #26211C #352E27 #F5EDE0 #EBA785",
         "dark":  "#F0E9DF #BDB3A7 #141110 #1E1A17 #37302A #231E1A #DB7A50 #1A0C05 #EBA785 #B9C58A #2A2D1C #241F1B #332C26 #F5EDE0 #EBA785"},
 }
-THEME = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--theme=")), "emerald")
+THEME = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--theme=")), "navy")
 if THEME not in THEMES:
     sys.exit(f"Unknown theme {THEME!r}. Choose from: {', '.join(THEMES)}")
 def _tokens(mode):

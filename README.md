@@ -22,7 +22,7 @@ Rebuild of [crownmastersadventures.co.ke](https://crownmastersadventures.co.ke):
 ```bash
 python3 build.py               # demo build: links end in index.html, opens straight from the folder
 python3 build.py --production  # clean URLs for deployment (what is committed in site/)
-python3 build.py --theme=navy  # preview another palette: emerald (default), navy, savanna
+python3 build.py --theme=emerald  # preview another palette: navy (default), emerald, savanna
 ```
 
 Colours live in the `THEMES` table in `build.py` (light and dark values for each palette). Headings use Fraunces (soft cut), body text Plus Jakarta Sans, both served from `fonts/`.
