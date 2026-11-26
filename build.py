@@ -270,8 +270,8 @@ figure{margin:0}
 .clients:hover .cl-track,.clients.paused .cl-track{animation-play-state:paused}
 .cl-track ul{display:flex;gap:12px;list-style:none;margin:0;padding:0 12px 0 0;max-width:none}
 .cl-track li{flex:none;display:grid;place-items:center;height:68px;min-width:132px;padding:0 24px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#1B2436;font:700 .95rem "Plus Jakarta Sans",sans-serif;letter-spacing:.01em;white-space:nowrap}
-.cl-track img{display:block;height:34px;width:auto;max-width:150px;object-fit:contain;filter:grayscale(1);opacity:.78;transition:filter .25s,opacity .25s}
-.cl-track li:hover img{filter:none;opacity:1}
+.cl-track img{display:block;height:34px;width:auto;max-width:170px;object-fit:contain;filter:grayscale(1);opacity:.78;transition:filter .25s,opacity .25s}
+.cl-track img.tall{height:50px}.cl-track li:hover img{filter:none;opacity:1}
 .cl-text{margin:14px 0 0;max-width:none}
 @keyframes cl-scroll{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.cl-track{animation:none}.clients{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.cl-track ul[aria-hidden]{display:none}}
@@ -733,10 +733,20 @@ b.addEventListener('click',function(){var p=s.classList.toggle('paused');b.setAt
 
 def client_strip():
     """One-row client strip: logo where a file exists in photos/logos/, otherwise the name as text."""
+    def compact(path):
+        """True for stacked or two-line logos (PNG narrower than 3.3:1), which need more height to stay legible."""
+        if not path.endswith(".png"):
+            return False
+        with open(path, "rb") as fh:
+            head = fh.read(24)
+        w, h = int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
+        return h and w / h < 3.3
     def item(name, slug):
         for ext in ("svg", "png", "webp"):
-            if os.path.exists(os.path.join(PHOTO_DIR, "logos", f"{slug}.{ext}")):
-                return f'<li><img src="__ASSETS__photos/logos/{slug}.{ext}" alt="{E(name)}" height="34" loading="lazy" decoding="async"></li>'
+            fp = os.path.join(PHOTO_DIR, "logos", f"{slug}.{ext}")
+            if os.path.exists(fp):
+                tall = compact(fp)
+                return f'<li><img{' class="tall"' if tall else ''} src="__ASSETS__photos/logos/{slug}.{ext}" alt="{E(name)}" height="{50 if tall else 34}" loading="lazy" decoding="async"></li>'
         return f'<li><span>{E(name)}</span></li>'
     items = "".join(item(n, sl) for n, sl in CLIENTS)
     lead = ", ".join(E(n) for n, _ in CLIENTS[:10])
